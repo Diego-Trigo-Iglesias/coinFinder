@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  coinfinder:
+    build: .
+    ports:
+      - "4321:4321"
+    volumes:
+      - ./coins.db:/app/coins.db
+    environment:
+      - NODE_ENV=production

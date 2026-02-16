@@ -1,17 +1,24 @@
 ---
-
+import Layout from '../layouts/Layout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout>
+	<div class="container mx-auto px-4 py-8">
+		<h1 class="text-4xl font-bold text-center mb-8">Buscador de Monedas</h1>
+		<p class="text-lg text-center mb-8">Sube fotos de monedas para verificar si las tienes en tu colección. La app analiza automáticamente las imágenes y te indica cuáles ya posees y cuáles son nuevas.</p>
+		<div class="mb-8 bg-blue-100 p-4 rounded">
+			<h3 class="font-semibold">Cómo funciona el análisis de imágenes:</h3>
+			<ul class="list-disc list-inside mt-2">
+				<li><strong>Hashing perceptual:</strong> Se calcula un hash único basado en características visuales de la imagen (bordes, texturas, colores), no en píxeles exactos.</li>
+				<li><strong>Comparación de contenido:</strong> Se compara el hash de la imagen subida con los hashes de tu colección. Si la distancia es baja (menos de 10), se considera que el contenido es similar (misma moneda).</li>
+				<li><strong>Rasgos analizados:</strong> Incluye patrones generales de la moneda, pero no texto específico o detalles finos. Para monedas idénticas, funciona bien; para variaciones, puede requerir ajustes.</li>
+				<li>Si dos imágenes tienen contenido visual similar (ej. misma moneda desde ángulos parecidos), se detectan como iguales.</li>
+			</ul>
+		</div>
+		<div class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4">
+			<a href="/upload" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center">Subir Monedas</a>
+			<a href="/collection" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-center">Ver Colección</a>
+			<a href="/history" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded text-center">Historial</a>
+		</div>
+	</div>
+</Layout>

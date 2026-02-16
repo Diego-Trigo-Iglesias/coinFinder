@@ -1,0 +1,92 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+	<div class="container mx-auto px-4 py-8">
+		<h1 class="text-3xl font-bold mb-8">Subir Monedas</h1>
+		<p class="mb-4">Sube fotos de monedas desde tu cámara o galería. El sistema analizará las imágenes comparándolas con tu colección usando hashing perceptual para detectar similitudes.</p>
+		<div class="mb-4 p-4 bg-blue-100 rounded">
+			<h3 class="font-semibold">Cómo funciona el análisis:</h3>
+			<ul class="list-disc list-inside">
+				<li>Se calcula un hash perceptual de cada imagen subida.</li>
+				<li>Se compara con los hashes de las monedas en tu colección usando distancia de Hamming.</li>
+				<li>Si la distancia es baja (menos de 10), se considera una coincidencia.</li>
+				<li>Monedas nuevas se agregan automáticamente a la colección.</li>
+			</ul>
+		</div>
+		<form id="uploadForm" enctype="multipart/form-data" class="bg-white p-6 rounded shadow-md">
+			<div class="mb-4">
+				<label for="images" class="block text-sm font-medium text-gray-700">Selecciona imágenes de monedas</label>
+				<input type="file" id="images" name="images" multiple accept="image/*" capture="environment" class="mt-1 block w-full" required>
+				<p class="text-sm text-gray-500 mt-1">Usa la cámara trasera en móviles para mejores resultados.</p>
+			</div>
+			<div id="imageDetails" class="mb-4"></div>
+			<button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Analizar</button>
+		</form>
+		<div id="results" class="mt-8"></div>
+		<div class="mt-8 bg-green-100 p-4 rounded">
+			<h3 class="font-semibold">Indicaciones para el usuario:</h3>
+			<ul class="list-disc list-inside mt-2">
+				<li><strong>Monedas que ya tienes:</strong> Se muestran las imágenes subidas que coinciden con monedas en tu colección. La distancia indica cuán similar es el contenido visual (bajo = muy similar).</li>
+				<li><strong>Nuevas monedas agregadas:</strong> Imágenes cuyo contenido no coincide con nada en tu colección y se agregan automáticamente.</li>
+				<li><strong>Análisis de imagen:</strong> Se compara el contenido visual (rasgos como bordes, texturas) usando hashing perceptual. No lee texto, pero detecta similitudes en el diseño de la moneda.</li>
+				<li>Si una moneda no se detecta correctamente, puedes editarla en la página de Colección.</li>
+			</ul>
+		</div>
+	</div>
+</Layout>
+
+<script>
+	document.getElementById('images').addEventListener('change', (e) => {
+		const files = e.target.files;
+		const detailsDiv = document.getElementById('imageDetails');
+		detailsDiv.innerHTML = '';
+		for (let i = 0; i < files.length; i++) {
+			const file = files[i];
+			const div = document.createElement('div');
+			div.className = 'mb-4 p-4 border rounded';
+			div.innerHTML = `
+				<img src="${URL.createObjectURL(file)}" alt="Preview" class="w-20 h-20 object-cover mb-2">
+				<div>
+					<label class="block text-sm font-medium">Título</label>
+					<input type="text" name="titles" value="${file.name}" class="mt-1 block w-full border rounded p-2" required>
+				</div>
+				<div class="mt-2">
+					<label class="block text-sm font-medium">Descripción</label>
+					<textarea name="descriptions" class="mt-1 block w-full border rounded p-2" rows="2"></textarea>
+				</div>
+			`;
+			detailsDiv.appendChild(div);
+		}
+	});
+
+	document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+		e.preventDefault();
+		const formData = new FormData(e.target as HTMLFormElement);
+		const response = await fetch('/api/upload', {
+			method: 'POST',
+			body: formData
+		});
+		const data = await response.json();
+		const resultsDiv = document.getElementById('results');
+		if (data.error) {
+			resultsDiv.innerHTML = `<p class="text-red-500">${data.error}</p>`;
+		} else {
+			let html = '<h2 class="text-2xl font-bold mb-4">Resultados</h2>';
+			if (data.matches.length > 0) {
+				html += '<h3 class="text-xl font-semibold mb-2">Monedas que ya tienes:</h3>';
+				data.matches.forEach((match: any) => {
+					html += `<div class="mb-4"><img src="${match.image}" alt="Moneda" class="w-32 h-32 object-cover"><p>Coincide con: ${match.match.name} (distancia: ${match.distance})</p></div>`;
+				});
+			}
+			if (data.results.length > 0) {
+				html += '<h3 class="text-xl font-semibold mb-2">Nuevas monedas agregadas:</h3>';
+				data.results.forEach((result: any) => {
+					html += `<div class="mb-4"><img src="${result.image}" alt="Moneda" class="w-32 h-32 object-cover"><p>${result.status}</p></div>`;
+				});
+			}
+			resultsDiv.innerHTML = html;
+		}
+	});
+</script>

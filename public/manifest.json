@@ -1,0 +1,16 @@
+{
+  "name": "Buscador de Monedas",
+  "short_name": "CoinFinder",
+  "description": "App para buscar monedas en tu colección",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

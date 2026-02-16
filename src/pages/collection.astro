@@ -1,0 +1,141 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getAllCoins } from '../lib/db';
+
+const coins = getAllCoins.all();
+---
+
+<Layout>
+	<div class="container mx-auto px-4 py-8">
+		<h1 class="text-3xl font-bold mb-8">Mi Colección</h1>
+		<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+			{coins.map((coin: any) => (
+				<div class="bg-white p-4 rounded shadow-md relative">
+					<img src={`/api/coin-image/${coin.id}`} alt={coin.name} class="w-full h-48 object-cover mb-2">
+					<h2 class="text-lg font-semibold">{coin.name}</h2>
+					<p class="text-sm text-gray-600 mb-2">{coin.description}</p>
+					<p class="text-sm"><strong>Año:</strong> {coin.year || 'Desconocido'}</p>
+					<p class="text-sm"><strong>Tipo:</strong> {coin.coin_type || 'Desconocido'}</p>
+					<p class="text-sm"><strong>Acuñación:</strong> {coin.mint || 'Desconocido'}</p>
+					<p class="text-sm"><strong>Valor aproximado:</strong> {coin.approximate_value || 'Desconocido'}</p>
+					<p class="text-sm"><strong>País:</strong> {coin.country || 'Desconocido'}</p>
+					<p class="text-sm"><strong>Denominación:</strong> {coin.denomination || 'Desconocido'}</p>
+					<p class="text-sm"><strong>Rareza:</strong> {coin.rarity}/5</p>
+					<p class="text-sm text-gray-500">Agregada: {new Date(coin.date_added).toLocaleDateString()}</p>
+					<div class="mt-4 flex space-x-2">
+						<button class="edit-btn bg-blue-500 hover:bg-blue-700 text-white text-sm py-1 px-2 rounded" data-id={coin.id} data-name={coin.name} data-description={coin.description} data-year={coin.year} data-coin-type={coin.coin_type} data-mint={coin.mint} data-value={coin.approximate_value} data-rarity={coin.rarity} data-country={coin.country} data-denomination={coin.denomination}>Editar</button>
+						<button class="delete-btn bg-red-500 hover:bg-red-700 text-white text-sm py-1 px-2 rounded" data-id={coin.id}>Eliminar</button>
+					</div>
+				</div>
+			))}
+		</div>
+		{coins.length === 0 && <p>No tienes monedas en tu colección aún.</p>}
+
+		<!-- Modal para editar -->
+		<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+			<div class="bg-white p-6 rounded shadow-md w-96">
+				<h2 class="text-xl font-bold mb-4">Editar Moneda</h2>
+				<form id="editForm">
+					<input type="hidden" id="editId" name="id">
+					<div class="mb-4">
+						<label class="block text-sm font-medium">Título</label>
+						<input type="text" id="editName" name="name" class="mt-1 block w-full border rounded p-2" required>
+					</div>
+					<div class="mb-4">
+						<label class="block text-sm font-medium">Descripción</label>
+						<textarea id="editDescription" name="description" class="mt-1 block w-full border rounded p-2" rows="3"></textarea>
+					</div>
+					<div class="mb-4">
+						<label class="block text-sm font-medium">Año</label>
+						<input type="text" id="editYear" name="year" class="mt-1 block w-full border rounded p-2">
+					</div>
+					<div class="mb-4">
+						<label class="block text-sm font-medium">Tipo</label>
+						<input type="text" id="editCoinType" name="coin_type" class="mt-1 block w-full border rounded p-2">
+					</div>
+					<div class="mb-4">
+						<label class="block text-sm font-medium">Acuñación</label>
+						<input type="text" id="editMint" name="mint" class="mt-1 block w-full border rounded p-2">
+					</div>
+					<div class="mb-4">
+						<label class="block text-sm font-medium">Valor aproximado</label>
+						<input type="text" id="editValue" name="approximate_value" class="mt-1 block w-full border rounded p-2">
+					</div>
+					<div class="mb-4">
+						<label class="block text-sm font-medium">Rareza (1-5)</label>
+						<input type="number" id="editRarity" name="rarity" min="1" max="5" class="mt-1 block w-full border rounded p-2">
+					</div>
+					<div class="mb-4">
+						<label class="block text-sm font-medium">País</label>
+						<input type="text" id="editCountry" name="country" class="mt-1 block w-full border rounded p-2">
+					</div>
+					<div class="mb-4">
+						<label class="block text-sm font-medium">Denominación</label>
+						<input type="text" id="editDenomination" name="denomination" class="mt-1 block w-full border rounded p-2">
+					</div>
+					<div class="flex space-x-2">
+						<button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded">Guardar</button>
+						<button type="button" id="cancelEdit" class="bg-gray-500 hover:bg-gray-700 text-white py-2 px-4 rounded">Cancelar</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</Layout>
+
+<script>
+	document.addEventListener('click', (e) => {
+		if (e.target.classList.contains('edit-btn')) {
+			const id = e.target.dataset.id;
+			const name = e.target.dataset.name;
+			const description = e.target.dataset.description;
+			const year = e.target.dataset.year;
+			const coinType = e.target.dataset.coinType;
+			const mint = e.target.dataset.mint;
+			const value = e.target.dataset.value;
+			const rarity = e.target.dataset.rarity;
+			const country = e.target.dataset.country;
+			const denomination = e.target.dataset.denomination;
+			document.getElementById('editId').value = id;
+			document.getElementById('editName').value = name;
+			document.getElementById('editDescription').value = description;
+			document.getElementById('editYear').value = year;
+			document.getElementById('editCoinType').value = coinType;
+			document.getElementById('editMint').value = mint;
+			document.getElementById('editValue').value = value;
+			document.getElementById('editRarity').value = rarity;
+			document.getElementById('editCountry').value = country;
+			document.getElementById('editDenomination').value = denomination;
+			document.getElementById('editModal').classList.remove('hidden');
+		}
+		if (e.target.classList.contains('delete-btn')) {
+			const id = e.target.dataset.id;
+			if (confirm('¿Eliminar esta moneda?')) {
+				fetch(`/api/coins/${id}`, { method: 'DELETE' }).then(() => location.reload());
+			}
+		}
+		if (e.target.id === 'cancelEdit') {
+			document.getElementById('editModal').classList.add('hidden');
+		}
+	});
+
+	document.getElementById('editForm').addEventListener('submit', async (e) => {
+		e.preventDefault();
+		const formData = new FormData(e.target);
+		const id = formData.get('id');
+		const name = formData.get('name');
+		const description = formData.get('description');
+		const year = formData.get('year');
+		const coinType = formData.get('coin_type');
+		const mint = formData.get('mint');
+		const value = formData.get('approximate_value');
+		const rarity = formData.get('rarity');
+		await fetch(`/api/coins/${id}`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ name, description, year, coin_type: coinType, mint, approximate_value: value, rarity })
+		});
+		document.getElementById('editModal').classList.add('hidden');
+		location.reload();
+	});
+</script>

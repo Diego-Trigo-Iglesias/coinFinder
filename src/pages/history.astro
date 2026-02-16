@@ -1,0 +1,42 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getAllUploads } from '../lib/db';
+
+const uploads = getAllUploads.all();
+---
+
+<Layout>
+	<div class="container mx-auto px-4 py-8">
+		<h1 class="text-3xl font-bold mb-8">Historial de Subidas</h1>
+		<div class="space-y-4">
+			{uploads.map((upload: any) => {
+				const images = JSON.parse(upload.images);
+				const results = JSON.parse(upload.results);
+				return (
+					<div class="bg-white p-6 rounded shadow-md">
+						<p class="text-sm text-gray-500">Fecha: {new Date(upload.date_uploaded).toLocaleString()}</p>
+						<div class="mt-4">
+							<h3 class="text-lg font-semibold">Imágenes subidas:</h3>
+							<div class="flex flex-wrap gap-2 mt-2">
+								{images.map((img: string) => (
+									<img src={img} alt="Moneda" class="w-20 h-20 object-cover">
+								))}
+							</div>
+						</div>
+						{results.length > 0 && (
+							<div class="mt-4">
+								<h3 class="text-lg font-semibold">Coincidencias:</h3>
+								<ul class="list-disc list-inside">
+									{results.map((match: any) => (
+										<li>Imagen coincide con {match.match.name} (distancia: {match.distance})</li>
+									))}
+								</ul>
+							</div>
+						)}
+					</div>
+				);
+			})}
+		</div>
+		{uploads.length === 0 && <p>No hay historial de subidas.</p>}
+	</div>
+</Layout>

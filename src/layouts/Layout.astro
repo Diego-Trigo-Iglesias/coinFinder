@@ -1,0 +1,32 @@
+---
+import '../styles/global.css';
+---
+
+<html lang="es">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="manifest" href="/manifest.json" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Buscador de Monedas</title>
+	</head>
+	<body class="bg-gray-100 min-h-screen">
+		<nav class="bg-white shadow-md">
+			<div class="container mx-auto px-4 py-4">
+				<div class="flex justify-between items-center">
+					<a href="/" class="text-xl font-bold">Buscador de Monedas</a>
+					<div class="space-x-4">
+						<a href="/" class="text-gray-700 hover:text-blue-500">Inicio</a>
+						<a href="/upload" class="text-gray-700 hover:text-blue-500">Subir</a>
+						<a href="/collection" class="text-gray-700 hover:text-blue-500">Colección</a>
+						<a href="/history" class="text-gray-700 hover:text-blue-500">Historial</a>
+					</div>
+				</div>
+			</div>
+		</nav>
+		<main>
+			<slot />
+		</main>
+	</body>
+</html>
