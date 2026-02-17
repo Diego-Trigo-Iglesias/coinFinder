@@ -1,24 +1,60 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { container } from '../config/container';
+
+// No prerender esta página porque usa base de datos
+export const prerender = false;
+
+const coinService = container.coinService;
+const { coins: allCoins } = await coinService.getAllCoins(5, 0);
+const coinCount = await coinService.getCount();
+const coins = allCoins;
 ---
 
 <Layout>
-	<div class="container mx-auto px-4 py-8">
-		<h1 class="text-4xl font-bold text-center mb-8">Buscador de Monedas</h1>
-		<p class="text-lg text-center mb-8">Sube fotos de monedas para verificar si las tienes en tu colección. La app analiza automáticamente las imágenes y te indica cuáles ya posees y cuáles son nuevas.</p>
-		<div class="mb-8 bg-blue-100 p-4 rounded">
-			<h3 class="font-semibold">Cómo funciona el análisis de imágenes:</h3>
-			<ul class="list-disc list-inside mt-2">
-				<li><strong>Hashing perceptual:</strong> Se calcula un hash único basado en características visuales de la imagen (bordes, texturas, colores), no en píxeles exactos.</li>
-				<li><strong>Comparación de contenido:</strong> Se compara el hash de la imagen subida con los hashes de tu colección. Si la distancia es baja (menos de 10), se considera que el contenido es similar (misma moneda).</li>
-				<li><strong>Rasgos analizados:</strong> Incluye patrones generales de la moneda, pero no texto específico o detalles finos. Para monedas idénticas, funciona bien; para variaciones, puede requerir ajustes.</li>
-				<li>Si dos imágenes tienen contenido visual similar (ej. misma moneda desde ángulos parecidos), se detectan como iguales.</li>
-			</ul>
+	<div>
+		<div class="mb-8">
+			<h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Mi Colección</h1>
+			<p class="text-gray-700">Captura monedas y construye tu colección</p>
 		</div>
-		<div class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4">
-			<a href="/upload" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center">Subir Monedas</a>
-			<a href="/collection" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-center">Ver Colección</a>
-			<a href="/history" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded text-center">Historial</a>
+
+		<!-- Cards principales - Grid responsivo -->
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
+			<!-- Card Capturar -->
+			<a href="/upload" class="bg-blue-600 hover:bg-blue-700 text-white p-8 sm:p-10 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95 min-h-44 flex flex-col items-center justify-center text-center group">
+				<svg class="w-16 h-16 mb-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+				</svg>
+				<h2 class="text-2xl font-bold">Capturar</h2>
+				<p class="text-sm mt-2 opacity-90">Añade nuevas monedas</p>
+			</a>
+
+			<!-- Card Colección -->
+			<a href="/collection" class="bg-blue-500 hover:bg-blue-600 text-white p-8 sm:p-10 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95 min-h-44 flex flex-col items-center justify-center text-center group">
+				<svg class="w-16 h-16 mb-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4m0 0L4 7m16 0l-8 4m0 0l8 4m-8-4v10m-8-4l8 4"></path>
+				</svg>
+				<h2 class="text-2xl font-bold">Colección</h2>
+				<p class="text-sm mt-2 opacity-90">{coinCount} {coinCount === 1 ? 'moneda' : 'monedas'}</p>
+			</a>
 		</div>
+
+		<!-- Monedas recientes - Más responsive -->
+		{coinCount > 0 && (
+			<div class="mt-12">
+				<h3 class="text-xl font-bold mb-6 text-gray-900">Últimas añadidas</h3>
+				<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+					{coins.slice(-5).reverse().map((coin: any) => (
+						<a href="/collection" class="group relative rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow aspect-square bg-gray-200">
+							<img src={`/api/coin-image/${coin.id}`} alt={coin.name} class="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy">
+							<div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
+								<p class="p-2 text-white text-xs font-semibold truncate w-full">{coin.name}</p>
+							</div>
+						</a>
+					))}
+				</div>
+			</div>
+		)}
 	</div>
 </Layout>

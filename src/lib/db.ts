@@ -1,70 +1,110 @@
-import Database from 'better-sqlite3';
-import path from 'path';
+// DEPRECATED: este archivo ha sido refactorizado en capas de repositorio y servicio
+// Usa lo siguiente en su lugar:
+// - CoinRepository: src/core/repositories/CoinRepository.ts
+// - CoinService: src/core/services/CoinService.ts
+// - SqliteDatabase: src/infrastructure/database/SqliteDatabase.ts
+// - Ver: src/config/container.ts para inyección de dependencias
 
-const dbPath = path.join(process.cwd(), 'coins.db');
-const db = new Database(dbPath);
-// Migrar base de datos
-try {
-  db.exec(`ALTER TABLE coins ADD COLUMN description TEXT DEFAULT ''`);
-} catch (e) {
-  // La columna podría ya existir
+import { container } from '../config/container';
+
+/**
+ * @deprecated Usa container.coinRepository en su lugar
+ */
+export const insertCoin = {
+  run: (..._args: any[]) => {
+    throw new Error('insertCoin is deprecated. Use container.coinService.createCoin() instead');
+  }
+};
+
+/**
+ * @deprecated Usa container.coinService.getAllCoinsForComparison() en su lugar
+ */
+export function getAllCoinsForComparison() {
+  return container.coinService.getAllCoinsForComparison();
 }
-try {
-  db.exec(`ALTER TABLE coins ADD COLUMN year TEXT`);
-} catch (e) {}
-try {
-  db.exec(`ALTER TABLE coins ADD COLUMN coin_type TEXT`);
-} catch (e) {}
-try {
-  db.exec(`ALTER TABLE coins ADD COLUMN mint TEXT`);
-} catch (e) {}
-try {
-  db.exec(`ALTER TABLE coins ADD COLUMN approximate_value TEXT`);
-} catch (e) {}
-try {
-  db.exec(`ALTER TABLE coins ADD COLUMN rarity INTEGER DEFAULT 1`);
-} catch (e) {}
-try {
-  db.exec(`ALTER TABLE coins ADD COLUMN country TEXT`);
-} catch (e) {}
-try {
-  db.exec(`ALTER TABLE coins ADD COLUMN denomination TEXT`);
-} catch (e) {}
-// Crear tablas
-db.exec(`
-  CREATE TABLE IF NOT EXISTS coins (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    description TEXT DEFAULT '',
-    image_data BLOB,
-    hash TEXT UNIQUE,
-    year TEXT,
-    coin_type TEXT,
-    mint TEXT,
-    approximate_value TEXT,
-    rarity INTEGER DEFAULT 1,
-    country TEXT,
-    denomination TEXT,
-    date_added DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
 
-  CREATE TABLE IF NOT EXISTS uploads (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    images TEXT, -- Array JSON de datos de imagen (base64 o algo)
-    results TEXT, -- Array JSON de coincidencias
-    date_uploaded DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-`);
+/**
+ * @deprecated Usa container.coinService.getAllCoins() en su lugar
+ */
+export function getAllCoins() {
+  const coinService = container.coinService;
+  return {
+    all: async () => {
+      const { coins } = await coinService.getAllCoins();
+      return coins;
+    },
+    get: async (limit: number = 50, offset: number = 0) => {
+      const { coins } = await coinService.getAllCoins(limit, offset);
+      return coins;
+    },
+    count: () => coinService.getCount()
+  };
+}
 
-// Sentencias preparadas
-export const insertCoin = db.prepare('INSERT INTO coins (name, description, image_data, hash, year, coin_type, mint, approximate_value, rarity, country, denomination) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-export const getAllCoins = db.prepare('SELECT id, name, description, hash, year, coin_type, mint, approximate_value, rarity, country, denomination, date_added FROM coins'); // Excluir image_data para lista
-export const getCoinById = db.prepare('SELECT * FROM coins WHERE id = ?');
-export const getCoinByHash = db.prepare('SELECT * FROM coins WHERE hash = ?');
-export const getCoinImage = db.prepare('SELECT image_data FROM coins WHERE id = ?');
-export const updateCoin = db.prepare('UPDATE coins SET name = ?, description = ?, year = ?, coin_type = ?, mint = ?, approximate_value = ?, rarity = ?, country = ?, denomination = ? WHERE id = ?');
-export const deleteCoin = db.prepare('DELETE FROM coins WHERE id = ?');
-export const insertUpload = db.prepare('INSERT INTO uploads (images, results) VALUES (?, ?)');
-export const getAllUploads = db.prepare('SELECT * FROM uploads ORDER BY date_uploaded DESC');
+/**
+ * @deprecated Usa container.coinService.getCoinById() en su lugar
+ */
+export const getCoinById = {
+  get: (id: number) => container.coinService.getCoinById(id)
+};
 
-export default db;
+/**
+ * @deprecated Use container.coinService.getCoinByHash() instead
+ */
+export const getCoinByHash = {
+  get: (hash: string) => container.coinService.getCoinByHash(hash)
+};
+
+/**
+ * @deprecated Use container.coinService.getCoinImage() instead
+ */
+export const getCoinImage = {
+  get: (id: number) => container.coinService.getCoinImage(id)
+};
+
+/**
+ * @deprecated Use container.coinService.updateCoin() instead
+ */
+export const updateCoin = {
+  run: (..._args: any[]) => {
+    throw new Error('updateCoin is deprecated. Use container.coinService.updateCoin() instead');
+  }
+};
+
+/**
+ * @deprecated Use container.coinService.deleteCoin() instead
+ */
+export const deleteCoin = {
+  run: (id: number) => container.coinService.deleteCoin(id)
+};
+
+/**
+ * @deprecated No longer needed
+ */
+export const insertUpload = {
+  run: (..._args: any[]) => {
+    // Seguimiento de carga removido para simplificación
+  }
+};
+
+/**
+ * @deprecated No longer needed
+ */
+export const getAllUploads = {
+  all: () => []
+};
+
+/**
+ * @deprecated Use container.coinRepository.invalidateCache() instead
+ */
+export function invalidateCoinsCache() {
+  container.coinRepository.invalidateCache();
+}
+
+/**
+ * @deprecated Use container.database instead
+ */
+export default {
+  prepare: () => { throw new Error('Use container.database instead'); },
+  exec: () => { throw new Error('Use container.database instead'); }
+};

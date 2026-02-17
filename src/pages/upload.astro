@@ -1,92 +1,324 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+export const prerender = false;
 ---
 
 <Layout>
-	<div class="container mx-auto px-4 py-8">
-		<h1 class="text-3xl font-bold mb-8">Subir Monedas</h1>
-		<p class="mb-4">Sube fotos de monedas desde tu cámara o galería. El sistema analizará las imágenes comparándolas con tu colección usando hashing perceptual para detectar similitudes.</p>
-		<div class="mb-4 p-4 bg-blue-100 rounded">
-			<h3 class="font-semibold">Cómo funciona el análisis:</h3>
-			<ul class="list-disc list-inside">
-				<li>Se calcula un hash perceptual de cada imagen subida.</li>
-				<li>Se compara con los hashes de las monedas en tu colección usando distancia de Hamming.</li>
-				<li>Si la distancia es baja (menos de 10), se considera una coincidencia.</li>
-				<li>Monedas nuevas se agregan automáticamente a la colección.</li>
-			</ul>
+	<div>
+		<h1 class="text-3xl md:text-4xl font-bold mb-2 text-gray-800">Capturar monedas</h1>
+		<p class="text-gray-600 mb-8">Elige una foto de tu galería o toma una nueva con la cámara</p>
+
+		<!-- Inputs file ocultos -->
+		<input 
+			type="file" 
+			id="cameraInput" 
+			name="cameraImages" 
+			multiple 
+			accept="image/*" 
+			capture="environment"
+			class="hidden" 
+		>
+		<input 
+			type="file" 
+			id="galleryInput" 
+			name="galleryImages" 
+			multiple 
+			accept="image/*" 
+			class="hidden" 
+		>
+
+		<!-- Botones principales - Grid responsivo -->
+		<div id="mainButtons" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+			<!-- Botón Cámara -->
+			<button id="cameraBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white p-8 sm:p-10 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95 min-h-48 flex flex-col items-center justify-center text-center group">
+				<svg class="w-16 h-16 mb-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+				</svg>
+				<h2 class="text-2xl font-bold">Tomar foto</h2>
+				<p class="text-sm mt-2 opacity-90">Usa la cámara del dispositivo</p>
+			</button>
+
+			<!-- Botón Galería -->
+			<button id="galleryBtn" type="button" class="bg-blue-500 hover:bg-blue-600 text-white p-8 sm:p-10 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95 min-h-48 flex flex-col items-center justify-center text-center group">
+				<svg class="w-16 h-16 mb-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3v-8"></path>
+				</svg>
+				<h2 class="text-2xl font-bold">Elegir del equipo</h2>
+				<p class="text-sm mt-2 opacity-90">Selecciona una foto existente</p>
+			</button>
 		</div>
-		<form id="uploadForm" enctype="multipart/form-data" class="bg-white p-6 rounded shadow-md">
-			<div class="mb-4">
-				<label for="images" class="block text-sm font-medium text-gray-700">Selecciona imágenes de monedas</label>
-				<input type="file" id="images" name="images" multiple accept="image/*" capture="environment" class="mt-1 block w-full" required>
-				<p class="text-sm text-gray-500 mt-1">Usa la cámara trasera en móviles para mejores resultados.</p>
+
+		<!-- Previsualización de imágenes - OCULTA por defecto -->
+		<div id="imagePreview" class="mb-8 hidden">
+			<h3 class="text-lg font-bold mb-4 text-gray-800">Imágenes seleccionadas</h3>
+			<div id="imageDetails" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6"></div>
+			<div class="flex flex-col md:flex-row gap-3">
+				<button type="submit" id="submitBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition flex items-center justify-center gap-2 active:scale-95">
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+					</svg>
+					Analizar
+				</button>
+				<button type="button" id="cancelBtn" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition flex items-center justify-center gap-2 active:scale-95">
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+					Cancelar
+				</button>
 			</div>
-			<div id="imageDetails" class="mb-4"></div>
-			<button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Analizar</button>
-		</form>
-		<div id="results" class="mt-8"></div>
-		<div class="mt-8 bg-green-100 p-4 rounded">
-			<h3 class="font-semibold">Indicaciones para el usuario:</h3>
-			<ul class="list-disc list-inside mt-2">
-				<li><strong>Monedas que ya tienes:</strong> Se muestran las imágenes subidas que coinciden con monedas en tu colección. La distancia indica cuán similar es el contenido visual (bajo = muy similar).</li>
-				<li><strong>Nuevas monedas agregadas:</strong> Imágenes cuyo contenido no coincide con nada en tu colección y se agregan automáticamente.</li>
-				<li><strong>Análisis de imagen:</strong> Se compara el contenido visual (rasgos como bordes, texturas) usando hashing perceptual. No lee texto, pero detecta similitudes en el diseño de la moneda.</li>
-				<li>Si una moneda no se detecta correctamente, puedes editarla en la página de Colección.</li>
-			</ul>
 		</div>
+
+		<!-- Resultados -->
+		<div id="results" class="mt-8"></div>
 	</div>
 </Layout>
 
 <script>
-	document.getElementById('images').addEventListener('change', (e) => {
-		const files = e.target.files;
-		const detailsDiv = document.getElementById('imageDetails');
-		detailsDiv.innerHTML = '';
+	// Elementos del DOM
+	const cameraInput = document.getElementById('cameraInput') as HTMLInputElement | null;
+	const galleryInput = document.getElementById('galleryInput') as HTMLInputElement | null;
+	const cameraBtn = document.getElementById('cameraBtn') as HTMLButtonElement | null;
+	const galleryBtn = document.getElementById('galleryBtn') as HTMLButtonElement | null;
+	const imagePreview = document.getElementById('imagePreview');
+	const imageDetails = document.getElementById('imageDetails');
+	const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement | null;
+	const cancelBtn = document.getElementById('cancelBtn') as HTMLButtonElement | null;
+	const resultsDiv = document.getElementById('results');
+
+	// Validar elementos
+	if (!cameraInput || !galleryInput || !cameraBtn || !galleryBtn || !submitBtn || !cancelBtn || !imagePreview || !imageDetails || !resultsDiv) {
+		console.error('Missing required DOM elements');
+	}
+
+	// Botones de acción
+	if (cameraBtn) {
+		cameraBtn.addEventListener('click', () => {
+			cameraInput?.click();
+		});
+	}
+
+	if (galleryBtn) {
+		galleryBtn.addEventListener('click', () => {
+			galleryInput?.click();
+		});
+	}
+
+	// Manejador de cambio de archivos
+	const handleFileChange = (e: Event) => {
+		const target = e.target as HTMLInputElement;
+		const files = target.files;
+		if (!files || files.length === 0 || !imageDetails) return;
+
+		imageDetails.innerHTML = '';
 		for (let i = 0; i < files.length; i++) {
 			const file = files[i];
 			const div = document.createElement('div');
-			div.className = 'mb-4 p-4 border rounded';
-			div.innerHTML = `
-				<img src="${URL.createObjectURL(file)}" alt="Preview" class="w-20 h-20 object-cover mb-2">
-				<div>
-					<label class="block text-sm font-medium">Título</label>
-					<input type="text" name="titles" value="${file.name}" class="mt-1 block w-full border rounded p-2" required>
-				</div>
-				<div class="mt-2">
-					<label class="block text-sm font-medium">Descripción</label>
-					<textarea name="descriptions" class="mt-1 block w-full border rounded p-2" rows="2"></textarea>
-				</div>
-			`;
-			detailsDiv.appendChild(div);
+			div.className = 'relative rounded-lg overflow-hidden bg-gray-100 aspect-square';
+			const reader = new FileReader();
+			reader.onload = (event) => {
+				if (event.target) {
+					div.innerHTML = `
+						<img src="${event.target.result}" alt="Preview" class="w-full h-full object-cover">
+						<div class="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold">${i + 1}</div>
+					`;
+				}
+			};
+			reader.readAsDataURL(file);
+			imageDetails.appendChild(div);
 		}
-	});
+		imagePreview?.classList.remove('hidden');
+		window.scrollTo({ top: imagePreview?.offsetTop || 0, behavior: 'smooth' });
+	};
 
-	document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-		e.preventDefault();
-		const formData = new FormData(e.target as HTMLFormElement);
-		const response = await fetch('/api/upload', {
-			method: 'POST',
-			body: formData
+	if (cameraInput) {
+		cameraInput.addEventListener('change', handleFileChange);
+	}
+	if (galleryInput) {
+		galleryInput.addEventListener('change', handleFileChange);
+	}
+
+	if (cancelBtn) {
+		cancelBtn.addEventListener('click', () => {
+			if (cameraInput) cameraInput.value = '';
+			if (galleryInput) galleryInput.value = '';
+			if (imageDetails) imageDetails.innerHTML = '';
+			imagePreview?.classList.add('hidden');
+			if (resultsDiv) resultsDiv.innerHTML = '';
 		});
-		const data = await response.json();
-		const resultsDiv = document.getElementById('results');
-		if (data.error) {
-			resultsDiv.innerHTML = `<p class="text-red-500">${data.error}</p>`;
-		} else {
-			let html = '<h2 class="text-2xl font-bold mb-4">Resultados</h2>';
-			if (data.matches.length > 0) {
-				html += '<h3 class="text-xl font-semibold mb-2">Monedas que ya tienes:</h3>';
-				data.matches.forEach((match: any) => {
-					html += `<div class="mb-4"><img src="${match.image}" alt="Moneda" class="w-32 h-32 object-cover"><p>Coincide con: ${match.match.name} (distancia: ${match.distance})</p></div>`;
-				});
+	}
+
+	if (submitBtn) {
+		submitBtn.addEventListener('click', async () => {
+			const files = (cameraInput?.files?.length || 0) > 0 ? cameraInput?.files : galleryInput?.files;
+			if (!files || files.length === 0) return;
+
+			submitBtn.disabled = true;
+			submitBtn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Analizando...';
+
+			const formData = new FormData();
+			for (let i = 0; i < files.length; i++) {
+				formData.append('images', files[i]);
+				formData.append('titles', files[i].name);
+				formData.append('descriptions', '');
 			}
-			if (data.results.length > 0) {
-				html += '<h3 class="text-xl font-semibold mb-2">Nuevas monedas agregadas:</h3>';
-				data.results.forEach((result: any) => {
-					html += `<div class="mb-4"><img src="${result.image}" alt="Moneda" class="w-32 h-32 object-cover"><p>${result.status}</p></div>`;
+
+			try {
+				const response = await fetch('/api/upload', {
+					method: 'POST',
+					body: formData
 				});
+				const data = await response.json();
+
+				if (data.error) {
+					if (resultsDiv) {
+						resultsDiv.innerHTML = `<div class="bg-red-100 text-red-700 p-4 rounded-lg border-l-4 border-red-400 flex items-start gap-3">
+							<svg class="w-6 h-6 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+							<div>Error: ${data.error}</div>
+						</div>`;
+					}
+				} else {
+					let html = '<div class="space-y-4">';
+
+					// Mostrar duplicados en el lote actual
+					if (data.duplicatesInBatch && data.duplicatesInBatch.length > 0) {
+						html += '<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">';
+						html += '<h3 class="font-bold text-lg mb-3 flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Fotos duplicadas</h3>';
+						data.duplicatesInBatch.forEach((dup: any) => {
+							html += `<div class="flex flex-col sm:flex-row items-center sm:items-start gap-3 mb-3 bg-white p-3 rounded"><img src="${dup.image}" alt="" class="w-full sm:w-16 sm:h-16 rounded object-cover flex-shrink-0"><div class="min-w-0 text-center sm:text-left"><p class="font-semibold text-sm">Foto duplicada dentro del lote</p></div></div>`;
+						});
+						html += '</div>';
+					}
+
+					// Mostrar análisis de cada moneda con opción de guardar
+					if (data.analysisResults && data.analysisResults.length > 0) {
+						data.analysisResults.forEach((result: any, idx: number) => {
+							const info = result.aiInfo || {};
+							html += `<div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">`;
+							html += `<h3 class="font-bold text-lg mb-3 text-gray-900 flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Moneda ${idx + 1}</h3>`;
+
+							html += `<div class="bg-white p-4 rounded mb-3 border border-gray-200">
+								<img src="${result.image}" alt="" class="w-full h-48 rounded object-cover mb-4">
+								<div class="space-y-2">
+									<p class="text-sm text-gray-800"><span class="font-semibold text-gray-900">Tipo:</span> ${info.coinType || 'Desconocido'}</p>
+									${info.year ? `<p class="text-sm text-gray-800"><span class="font-semibold text-gray-900">Año:</span> ${info.year}</p>` : ''}
+									${info.country ? `<p class="text-sm text-gray-800"><span class="font-semibold text-gray-900">País:</span> ${info.country}</p>` : ''}
+									${info.denomination ? `<p class="text-sm text-gray-800"><span class="font-semibold text-gray-900">Denominación:</span> ${info.denomination}</p>` : ''}
+									${info.mint ? `<p class="text-sm text-gray-800"><span class="font-semibold text-gray-900">Casa de moneda:</span> ${info.mint}</p>` : ''}
+									${info.rarity ? `<p class="text-sm text-gray-800"><span class="font-semibold text-gray-900">Rareza:</span> ${info.rarity}/5</p>` : ''}
+								</div>`;
+
+							if (result.existingMatch) {
+								html += `<div class="mt-3 bg-yellow-100 border border-yellow-400 rounded p-3">
+									<p class="text-sm font-semibold text-yellow-800">⚠️ Ya tienes una moneda similar:</p>
+									<p class="text-sm text-yellow-700">${result.existingMatch.title || result.existingMatch.name}</p>
+								</div>`;
+							}
+
+							html += `</div>`;
+							html += `<div class="flex flex-col sm:flex-row gap-2">
+								<button type="button" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition save-coin-btn active:scale-95" data-index="${idx}">
+									<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+									Guardar en colección
+								</button>
+								<button type="button" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition discard-coin-btn active:scale-95" data-index="${idx}">
+									<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+									Descartar
+								</button>
+							</div>`;
+							html += `</div>`;
+						});
+					}
+
+					html += '</div>';
+					if (resultsDiv) {
+						resultsDiv.innerHTML = html;
+						imagePreview?.classList.add('hidden');
+						window.scrollTo({ top: resultsDiv.offsetTop - 20, behavior: 'smooth' });
+						attachCoinActionListeners(data.analysisResults);
+					}
+				}
+			} catch (error) {
+				if (resultsDiv) {
+					resultsDiv.innerHTML = '<div class="bg-red-100 text-red-700 p-4 rounded-lg border-l-4 border-red-400 flex items-start gap-3"><svg class="w-6 h-6 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><div>Error al procesar las imágenes</div></div>';
+				}
+			} finally {
+				submitBtn.disabled = false;
+				submitBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Analizar';
 			}
-			resultsDiv.innerHTML = html;
-		}
-	});
+		});
+	}
+
+	// Función para manejar guardado/descarte de monedas
+	function attachCoinActionListeners(analysisResults: any[]) {
+		document.querySelectorAll('.save-coin-btn').forEach((btn) => {
+			btn.addEventListener('click', async (e) => {
+				const btn_el = e.currentTarget as HTMLButtonElement;
+				const idx = parseInt(btn_el.getAttribute('data-index') || '0');
+				const result = analysisResults[idx];
+
+				if (!result || !result.imageData || !result.hash) {
+					alert('Error: Datos de la moneda incompletos. Intenta de nuevo.');
+					return;
+				}
+
+				btn_el.disabled = true;
+				btn_el.innerHTML = '<svg class="w-5 h-5 animate-spin inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle></svg> Guardando...';
+
+				try {
+					const response = await fetch('/api/save-coin', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							imageData: result.imageData,
+							hash: result.hash,
+							title: result.title || 'Moneda',
+							description: result.description || '',
+							aiInfo: result.aiInfo || {},
+							savedImage: result.image
+						})
+					});
+
+					if (!response.ok) {
+						throw new Error(`HTTP ${response.status}`);
+					}
+
+					const saveData = await response.json();
+					if (saveData.success) {
+						const card = btn_el.closest('.bg-blue-50');
+						if (card) {
+							card.classList.remove('border-blue-400');
+							card.classList.add('border-green-400', 'bg-green-50');
+							const h3 = card.querySelector('h3');
+							if (h3) h3.innerHTML = '<svg class="w-5 h-5 text-green-600 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ✓ Guardado en colección';
+							const buttons = card.querySelector('.flex.flex-col');
+							if (buttons) buttons.remove();
+						}
+					} else {
+						throw new Error(saveData.error || saveData.details || 'Error desconocido');
+					}
+				} catch (error) {
+					btn_el.innerHTML = '<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Guardar en colección';
+					btn_el.disabled = false;
+					console.error('Error guardando moneda:', error);
+					alert('Error al guardar: ' + String(error));
+				}
+			});
+		});
+
+		document.querySelectorAll('.discard-coin-btn').forEach((btn) => {
+			btn.addEventListener('click', (e) => {
+				const btn_el = e.currentTarget as HTMLButtonElement;
+				const card = btn_el.closest('.bg-blue-50') as HTMLElement | null;
+				if (card) {
+					card.style.opacity = '0.5';
+					const buttons = card.querySelector('.flex.flex-col');
+					if (buttons) buttons.remove();
+					const h3 = card.querySelector('h3');
+					if (h3) h3.innerHTML = '⊘ Descartado';
+				}
+			});
+		});
+	}
 </script>

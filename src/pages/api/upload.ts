@@ -1,79 +1,117 @@
 import type { APIRoute } from 'astro';
-import { computeHashFromBuffer, saveImageToDB } from '../../lib/imageUtils';
-import { analyzeCoinImage } from '../../lib/aiAnalysis';
-import { insertCoin, insertUpload, getAllCoins } from '../../lib/db';
+import type { UploadResponse } from '../../core/domain/models/Upload';
+import { handleApiError } from '../../utils/errors/errorHandler';
+import { validateFiles } from '../../utils/validation/CoinValidator';
+import { logger } from '../../utils/logger/Logger';
 
+export const prerender = false;
+
+/**
+ * Endpoint de API para subida - procesa imágenes de monedas
+ */
 export const POST: APIRoute = async ({ request }) => {
   try {
+    // Import dinámico para evitar problemas con better-sqlite3 en ESM
+    const { container } = await import('../../config/container');
+    
+    // Analizar datos del formulario
     const formData = await request.formData();
     const files = formData.getAll('images') as File[];
     const titles = formData.getAll('titles') as string[];
     const descriptions = formData.getAll('descriptions') as string[];
 
-    if (!files || files.length === 0) {
-      return new Response(JSON.stringify({ error: 'No se subieron imágenes' }), { status: 400 });
-    }
+    // Validar entrada
+    validateFiles(files);
 
-    const results = [];
-    const savedImages = [];
-    const matches = [];
+    // Obtener servicios
+    const imageService = container.imageService;
+    const analysisService = container.analysisService;
+    const comparisonService = container.comparisonService;
+    const coinService = container.coinService;
 
-    // Obtener todas las monedas existentes para comparación
-    const allCoins = getAllCoins.all() as Array<{ hash: string; [key: string]: unknown }>;
+    logger.info('Carga en procesamiento', { fileCount: files.length });
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const title = titles[i] || file.name;
-      const description = descriptions[i] || '';
+    // Procesar todas las imágenes en paralelo
+    const processedImages = await Promise.all(
+      files.map(async (file, i) => {
+        const title = titles[i] || file.name;
+        const description = descriptions[i] || '';
 
-      const buffer = await file.arrayBuffer();
-      const imageData = await saveImageToDB(buffer, file.name);
-      const hash = await computeHashFromBuffer(imageData);
+        const buffer = await file.arrayBuffer();
+        const imageData = await imageService.processForStorage(buffer);
+        const hash = await imageService.computeHash(imageData);
+        const aiInfo = await analysisService.analyzeCoinImage(imageData);
+        const thumbnail = await imageService.createThumbnail(imageData);
 
-      // Analizar con IA para información detallada
-      const aiInfo = await analyzeCoinImage(Buffer.from(imageData));
+        return { file, imageData, hash, aiInfo, title, description, thumbnail, index: i };
+      })
+    );
 
-      // Verificar coincidencias usando comparación mejorada con IA
-      // Comparar basado en texto extraído, año, tipo, etc.
-      let bestMatch = null;
-      let minDistance = Infinity;
-      for (const coin of allCoins) {
-        let distance = hammingDistance(hash, coin.hash);
-        // Mejorar precisión con datos de IA
-        if (coin.year === aiInfo.year && coin.coin_type === aiInfo.coinType) distance -= 5; // Reducir distancia si metadatos coinciden
-        if (distance < 5 && distance < minDistance) { // Umbral más estricto
-          minDistance = distance;
-          bestMatch = coin;
-        }
-      }
+    // Encontrar duplicados dentro del lote
+    const imageHashes = processedImages.map((img, index) => ({ index, hash: img.hash }));
+    const batchDuplicates = comparisonService.findBatchDuplicates(imageHashes);
 
-      const base64Image = imageData.toString('base64');
-      savedImages.push(`data:image/png;base64,${base64Image}`);
+    // Obtener monedas existentes para comparación
+    const existingCoins = await coinService.getAllCoinsForComparison();
 
-      if (bestMatch) {
-        matches.push({ image: `data:image/png;base64,${base64Image}`, match: bestMatch, distance: minDistance });
-      } else {
-        // Nueva moneda
-        insertCoin.run(title, description, imageData, hash, aiInfo.year, aiInfo.coinType, aiInfo.mint, aiInfo.value, aiInfo.rarity, aiInfo.country, aiInfo.denomination);
-        results.push({ image: `data:image/png;base64,${base64Image}`, status: 'new', info: aiInfo });
-      }
-    }
+    // Preparar respuesta
+    const duplicatesInBatch = batchDuplicates.map(dup => ({
+      match: {
+        id: dup.primaryIndex,
+        name: processedImages[dup.primaryIndex].title,
+        ...processedImages[dup.primaryIndex].aiInfo
+      },
+      duplicateId: dup.duplicateIndex,
+      distance: dup.distance
+    }));
 
-    // Registrar la subida con imágenes base64
-    insertUpload.run(JSON.stringify(savedImages), JSON.stringify(matches));
+    const processedSet = new Set(batchDuplicates.map(d => d.duplicateIndex));
 
-    return new Response(JSON.stringify({ results, matches }), { status: 200 });
+    const analysisResults = processedImages
+      .filter((_, i) => !processedSet.has(i))
+      .map(img => {
+        const existingMatch = comparisonService.findBestMatch(
+          img.hash,
+          img.aiInfo,
+          existingCoins
+        );
+
+        return {
+          index: img.index,
+          hash: img.hash,
+          title: img.title,
+          description: img.description,
+          aiInfo: img.aiInfo,
+          image: img.thumbnail,
+          imageData: img.imageData.toString('base64'),
+          existingMatch: existingMatch ? {
+            id: existingMatch.id,
+            name: existingMatch.name,
+            distance: existingMatch.distance,
+            year: existingMatch.year,
+            coinType: existingMatch.coinType,
+            country: existingMatch.country,
+            denomination: existingMatch.denomination
+          } : null
+        };
+      });
+
+    const response: UploadResponse = {
+      analysisResults,
+      duplicatesInBatch
+    };
+
+    logger.info('Carga procesada correctamente', {
+      totalImages: files.length,
+      uniqueImages: analysisResults.length,
+      duplicates: duplicatesInBatch.length
+    });
+
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch (error) {
-    console.error(error);
-    return new Response(JSON.stringify({ error: 'Error interno del servidor' }), { status: 500 });
+    return handleApiError(error);
   }
-};
-
-// Distancia de Hamming para comparación de hash
-function hammingDistance(hash1: string, hash2: string): number {
-  let distance = 0;
-  for (let i = 0; i < hash1.length; i++) {
-    if (hash1[i] !== hash2[i]) distance++;
-  }
-  return distance;
 };

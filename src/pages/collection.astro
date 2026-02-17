@@ -1,141 +1,136 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getAllCoins } from '../lib/db';
+import { container } from '../config/container';
 
-const coins = getAllCoins.all();
+// No prerender esta página porque usa base de datos
+export const prerender = false;
+
+interface Coin {
+  id: string;
+  name: string;
+  description?: string;
+  date_added: string;
+  [key: string]: any;
+}
+
+// Paginación: cargar solo los primeros 50 elementos
+const page = 1;
+const limit = 50;
+const coinService = container.coinService;
+const { coins: fetchedCoins, total: totalCoins } = await coinService.getAllCoins(limit, 0);
+const coins: Coin[] = (fetchedCoins || []) as any;
+const totalPages = Math.ceil(totalCoins / limit);
 ---
 
 <Layout>
-	<div class="container mx-auto px-4 py-8">
-		<h1 class="text-3xl font-bold mb-8">Mi Colección</h1>
-		<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-			{coins.map((coin: any) => (
-				<div class="bg-white p-4 rounded shadow-md relative">
-					<img src={`/api/coin-image/${coin.id}`} alt={coin.name} class="w-full h-48 object-cover mb-2">
-					<h2 class="text-lg font-semibold">{coin.name}</h2>
-					<p class="text-sm text-gray-600 mb-2">{coin.description}</p>
-					<p class="text-sm"><strong>Año:</strong> {coin.year || 'Desconocido'}</p>
-					<p class="text-sm"><strong>Tipo:</strong> {coin.coin_type || 'Desconocido'}</p>
-					<p class="text-sm"><strong>Acuñación:</strong> {coin.mint || 'Desconocido'}</p>
-					<p class="text-sm"><strong>Valor aproximado:</strong> {coin.approximate_value || 'Desconocido'}</p>
-					<p class="text-sm"><strong>País:</strong> {coin.country || 'Desconocido'}</p>
-					<p class="text-sm"><strong>Denominación:</strong> {coin.denomination || 'Desconocido'}</p>
-					<p class="text-sm"><strong>Rareza:</strong> {coin.rarity}/5</p>
-					<p class="text-sm text-gray-500">Agregada: {new Date(coin.date_added).toLocaleDateString()}</p>
-					<div class="mt-4 flex space-x-2">
-						<button class="edit-btn bg-blue-500 hover:bg-blue-700 text-white text-sm py-1 px-2 rounded" data-id={coin.id} data-name={coin.name} data-description={coin.description} data-year={coin.year} data-coin-type={coin.coin_type} data-mint={coin.mint} data-value={coin.approximate_value} data-rarity={coin.rarity} data-country={coin.country} data-denomination={coin.denomination}>Editar</button>
-						<button class="delete-btn bg-red-500 hover:bg-red-700 text-white text-sm py-1 px-2 rounded" data-id={coin.id}>Eliminar</button>
+	<div>
+		<h1 class="text-3xl md:text-4xl font-bold mb-2 text-gray-900">Mi Colección</h1>
+		<p class="text-gray-700 mb-8">Total: {totalCoins} {totalCoins === 1 ? 'moneda' : 'monedas'}</p>
+		{coins.length === 0 && (
+			<div class="text-center py-12 bg-white rounded-lg border border-gray-200">
+				<p class="text-gray-700 text-lg mb-4">Aún no tienes monedas</p>
+				<a href="/upload" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition inline-block active:scale-95">Capturar primeras monedas</a>
+			</div>
+		)}
+		<div id="coinsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-8">
+			{coins.map((coin) => (
+				<a href={`/coin-detail/${coin.id}`} class="group cursor-pointer block">
+					<div class="bg-white rounded-lg shadow hover:shadow-xl transition-all overflow-hidden relative border border-gray-200 hover:border-blue-300">
+						<img src={`/api/coin-image/${coin.id}`} alt={coin.name} class="w-full aspect-square object-cover group-hover:brightness-75 transition" loading="lazy">
+						<div class="p-3 bg-gradient-to-t from-gray-900 via-transparent to-transparent absolute inset-0 opacity-0 group-hover:opacity-100 transition flex flex-col justify-end">
+							<h3 class="font-bold text-white text-xs sm:text-sm truncate">{coin.name}</h3>
+							<p class="text-xs text-gray-200 mt-1 flex items-center gap-1">
+								<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.3A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z"></path></svg>
+								Ver detalles
+							</p>
+						</div>
+						<div class="p-3">
+							<h3 class="font-semibold text-xs sm:text-sm text-gray-900 truncate">{coin.name}</h3>
+							<p class="text-xs text-gray-600 mt-1">{new Date(coin.date_added).toLocaleDateString()}</p>
+						</div>
 					</div>
-				</div>
+				</a>
 			))}
 		</div>
-		{coins.length === 0 && <p>No tienes monedas en tu colección aún.</p>}
 
-		<!-- Modal para editar -->
-		<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
-			<div class="bg-white p-6 rounded shadow-md w-96">
-				<h2 class="text-xl font-bold mb-4">Editar Moneda</h2>
-				<form id="editForm">
-					<input type="hidden" id="editId" name="id">
-					<div class="mb-4">
-						<label class="block text-sm font-medium">Título</label>
-						<input type="text" id="editName" name="name" class="mt-1 block w-full border rounded p-2" required>
-					</div>
-					<div class="mb-4">
-						<label class="block text-sm font-medium">Descripción</label>
-						<textarea id="editDescription" name="description" class="mt-1 block w-full border rounded p-2" rows="3"></textarea>
-					</div>
-					<div class="mb-4">
-						<label class="block text-sm font-medium">Año</label>
-						<input type="text" id="editYear" name="year" class="mt-1 block w-full border rounded p-2">
-					</div>
-					<div class="mb-4">
-						<label class="block text-sm font-medium">Tipo</label>
-						<input type="text" id="editCoinType" name="coin_type" class="mt-1 block w-full border rounded p-2">
-					</div>
-					<div class="mb-4">
-						<label class="block text-sm font-medium">Acuñación</label>
-						<input type="text" id="editMint" name="mint" class="mt-1 block w-full border rounded p-2">
-					</div>
-					<div class="mb-4">
-						<label class="block text-sm font-medium">Valor aproximado</label>
-						<input type="text" id="editValue" name="approximate_value" class="mt-1 block w-full border rounded p-2">
-					</div>
-					<div class="mb-4">
-						<label class="block text-sm font-medium">Rareza (1-5)</label>
-						<input type="number" id="editRarity" name="rarity" min="1" max="5" class="mt-1 block w-full border rounded p-2">
-					</div>
-					<div class="mb-4">
-						<label class="block text-sm font-medium">País</label>
-						<input type="text" id="editCountry" name="country" class="mt-1 block w-full border rounded p-2">
-					</div>
-					<div class="mb-4">
-						<label class="block text-sm font-medium">Denominación</label>
-						<input type="text" id="editDenomination" name="denomination" class="mt-1 block w-full border rounded p-2">
-					</div>
-					<div class="flex space-x-2">
-						<button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded">Guardar</button>
-						<button type="button" id="cancelEdit" class="bg-gray-500 hover:bg-gray-700 text-white py-2 px-4 rounded">Cancelar</button>
-					</div>
-				</form>
+		{/* Botón para cargar más - Solo si hay más monedas */}
+		{totalCoins > 50 && (
+			<div class="mb-8 text-center">
+				<button id="loadMoreBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition active:scale-95">
+					Cargar más ({coins.length}/{totalCoins})
+				</button>
+				<div id="loadingIndicator" class="hidden mt-4">
+					<p class="text-gray-600">Cargando...</p>
+				</div>
 			</div>
-		</div>
+		)}
 	</div>
 </Layout>
 
-<script>
-	document.addEventListener('click', (e) => {
-		if (e.target.classList.contains('edit-btn')) {
-			const id = e.target.dataset.id;
-			const name = e.target.dataset.name;
-			const description = e.target.dataset.description;
-			const year = e.target.dataset.year;
-			const coinType = e.target.dataset.coinType;
-			const mint = e.target.dataset.mint;
-			const value = e.target.dataset.value;
-			const rarity = e.target.dataset.rarity;
-			const country = e.target.dataset.country;
-			const denomination = e.target.dataset.denomination;
-			document.getElementById('editId').value = id;
-			document.getElementById('editName').value = name;
-			document.getElementById('editDescription').value = description;
-			document.getElementById('editYear').value = year;
-			document.getElementById('editCoinType').value = coinType;
-			document.getElementById('editMint').value = mint;
-			document.getElementById('editValue').value = value;
-			document.getElementById('editRarity').value = rarity;
-			document.getElementById('editCountry').value = country;
-			document.getElementById('editDenomination').value = denomination;
-			document.getElementById('editModal').classList.remove('hidden');
-		}
-		if (e.target.classList.contains('delete-btn')) {
-			const id = e.target.dataset.id;
-			if (confirm('¿Eliminar esta moneda?')) {
-				fetch(`/api/coins/${id}`, { method: 'DELETE' }).then(() => location.reload());
-			}
-		}
-		if (e.target.id === 'cancelEdit') {
-			document.getElementById('editModal').classList.add('hidden');
-		}
-	});
+<script define:vars={{totalCoins}}>
+	let currentPage = 1;
+	const TOTAL_COINS = totalCoins;
+	const LIMIT = 50;
 
-	document.getElementById('editForm').addEventListener('submit', async (e) => {
-		e.preventDefault();
-		const formData = new FormData(e.target);
-		const id = formData.get('id');
-		const name = formData.get('name');
-		const description = formData.get('description');
-		const year = formData.get('year');
-		const coinType = formData.get('coin_type');
-		const mint = formData.get('mint');
-		const value = formData.get('approximate_value');
-		const rarity = formData.get('rarity');
-		await fetch(`/api/coins/${id}`, {
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ name, description, year, coin_type: coinType, mint, approximate_value: value, rarity })
-		});
-		document.getElementById('editModal').classList.add('hidden');
-		location.reload();
-	});
+	const loadMoreBtn = document.getElementById('loadMoreBtn');
+	const loadingIndicator = document.getElementById('loadingIndicator');
+	const coinsGrid = document.getElementById('coinsGrid');
+
+	if (loadMoreBtn) {
+		loadMoreBtn.addEventListener('click', loadMore);
+	}
+
+	async function loadMore() {
+		if (!loadMoreBtn || !loadingIndicator || !coinsGrid) return;
+		currentPage++;
+		loadMoreBtn.disabled = true;
+		loadingIndicator?.classList.remove('hidden');
+
+		try {
+			const response = await fetch(`/api/coins-paginated?page=${currentPage}&limit=${LIMIT}`);
+			const data = await response.json();
+			
+			// Agregar nuevas monedas al grid
+			const fragment = document.createDocumentFragment();
+			data.coins.forEach((coin) => {
+				const link = document.createElement('a');
+				link.href = `/coin-detail/${coin.id}`;
+				link.className = 'group cursor-pointer block';
+				link.innerHTML = `
+					<div class="bg-white rounded-lg shadow hover:shadow-xl transition-all overflow-hidden relative border border-gray-200 hover:border-blue-300">
+						<img src="/api/coin-image/${coin.id}" alt="${coin.name}" class="w-full aspect-square object-cover group-hover:brightness-75 transition" loading="lazy">
+						<div class="p-3 bg-gradient-to-t from-gray-900 via-transparent to-transparent absolute inset-0 opacity-0 group-hover:opacity-100 transition flex flex-col justify-end">
+							<h3 class="font-bold text-white text-xs sm:text-sm truncate">${coin.name}</h3>
+							<p class="text-xs text-gray-200 mt-1 flex items-center gap-1">
+								<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.3A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z"></path></svg>
+								Ver detalles
+							</p>
+						</div>
+						<div class="p-3">
+							<h3 class="font-semibold text-xs sm:text-sm text-gray-900 truncate">${coin.name}</h3>
+							<p class="text-xs text-gray-600 mt-1">${new Date(coin.date_added).toLocaleDateString()}</p>
+						</div>
+					</div>
+				`;
+				fragment.appendChild(link);
+			});
+			coinsGrid?.appendChild(fragment);
+
+			// Actualizar botón
+			const loaded = currentPage * LIMIT;
+			if (loadMoreBtn) {
+				loadMoreBtn.textContent = `Cargar más (${loaded}/${TOTAL_COINS})`;
+				
+				// Ocultar botón si no hay más monedas
+				if (!data.hasMore) {
+					loadMoreBtn.style.display = 'none';
+				}
+			}
+		} catch (error) {
+			console.error('Error cargando más monedas:', error);
+		} finally {
+			if (loadMoreBtn) loadMoreBtn.disabled = false;
+			loadingIndicator?.classList.add('hidden');
+		}
+	}
 </script>

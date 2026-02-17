@@ -14,16 +14,20 @@
     "@astrojs/node": "^9.5.3",
     "@astrojs/react": "^4.4.2",
     "@google-cloud/vision": "^5.3.4",
+    "@lucide/astro": "^0.574.0",
     "@tailwindcss/vite": "^4.1.18",
     "@types/better-sqlite3": "^7.6.13",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "astro": "^5.17.1",
     "better-sqlite3": "^12.6.2",
-    "image-hash": "^7.0.1",
+    "lucide-react": "^0.574.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "terser": "^5.46.0"
   }
 }

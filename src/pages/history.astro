@@ -1,42 +1,46 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getAllUploads } from '../lib/db';
+import { AlertCircle } from '@lucide/astro';
 
-const uploads = getAllUploads.all();
+const uploads = getAllUploads.all().reverse();
 ---
 
 <Layout>
-	<div class="container mx-auto px-4 py-8">
-		<h1 class="text-3xl font-bold mb-8">Historial de Subidas</h1>
+	<div class="py-6 md:py-12">
+		<h2 class="text-2xl font-bold mb-8 text-gray-800">Historial</h2>
+		{uploads.length === 0 && (
+			<div class="text-center py-12 bg-gray-50 rounded-lg">
+				<p class="text-gray-600 text-lg">No hay historial aún</p>
+			</div>
+		)}
 		<div class="space-y-4">
 			{uploads.map((upload: any) => {
 				const images = JSON.parse(upload.images);
 				const results = JSON.parse(upload.results);
+				const matchCount = Array.isArray(results) ? results.length : 0;
 				return (
-					<div class="bg-white p-6 rounded shadow-md">
-						<p class="text-sm text-gray-500">Fecha: {new Date(upload.date_uploaded).toLocaleString()}</p>
-						<div class="mt-4">
-							<h3 class="text-lg font-semibold">Imágenes subidas:</h3>
-							<div class="flex flex-wrap gap-2 mt-2">
-								{images.map((img: string) => (
-									<img src={img} alt="Moneda" class="w-20 h-20 object-cover">
-								))}
+					<div class="bg-white p-4 rounded-lg shadow hover:shadow-md transition">
+						<div class="flex items-start justify-between mb-3">
+							<div>
+								<p class="font-semibold text-gray-800">{new Date(upload.date_uploaded).toLocaleDateString()}</p>
+								<p class="text-xs text-gray-500">{new Date(upload.date_uploaded).toLocaleTimeString()}</p>
 							</div>
+							<span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full font-semibold">{images.length} {images.length === 1 ? 'imagen' : 'imágenes'}</span>
 						</div>
-						{results.length > 0 && (
-							<div class="mt-4">
-								<h3 class="text-lg font-semibold">Coincidencias:</h3>
-								<ul class="list-disc list-inside">
-									{results.map((match: any) => (
-										<li>Imagen coincide con {match.match.name} (distancia: {match.distance})</li>
-									))}
-								</ul>
+						<div class="flex gap-2 mb-3 overflow-x-auto pb-2">
+							{images.map((img: string) => (
+								<img src={img} alt="Moneda" class="w-16 h-16 object-cover rounded flex-shrink-0">
+							))}
+						</div>
+						{matchCount > 0 && (
+							<div class="bg-yellow-50 border-l-2 border-yellow-400 p-2 text-sm">
+								<p class="font-semibold text-yellow-700">⚠️ {matchCount} coincidencia{matchCount > 1 ? 's' : ''}</p>
 							</div>
 						)}
 					</div>
 				);
 			})}
 		</div>
-		{uploads.length === 0 && <p>No hay historial de subidas.</p>}
 	</div>
 </Layout>
