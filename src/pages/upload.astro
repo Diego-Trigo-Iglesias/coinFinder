@@ -202,17 +202,37 @@ function escapeHtml(unsafe: string | null | undefined) {
 			submitBtn.disabled = true;
 			submitBtn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Analizando...';
 
-			const formData = new FormData();
+			// Convertir archivos a base64 y enviar JSON (evita restricciones de cross-site form posts)
+			const fileToBase64 = (file: File) => new Promise<string>((resolve, reject) => {
+				const reader = new FileReader();
+				reader.onerror = () => reject(new Error('File read error'));
+				reader.onload = () => {
+					const result = reader.result as string;
+					// result tiene formato data:<mime>;base64,<data>
+					const base64 = result.split(',')[1];
+					resolve(base64);
+				};
+				reader.readAsDataURL(file);
+			});
+
+			const imagesPayload: any[] = [];
 			for (let i = 0; i < files.length; i++) {
-				formData.append('images', files[i]);
-				formData.append('titles', files[i].name);
-				formData.append('descriptions', '');
+				const file = files[i];
+				const base64 = await fileToBase64(file);
+				imagesPayload.push({ filename: file.name, data: base64 });
 			}
+
+			const payload = {
+				images: imagesPayload,
+				titles: Array.from({ length: imagesPayload.length }, (_, i) => (files[i] ? files[i].name : `image_${i}`)),
+				descriptions: Array.from({ length: imagesPayload.length }, () => '')
+			};
 
 			try {
 				const response = await fetch('/api/upload', {
 					method: 'POST',
-					body: formData
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(payload)
 				});
 
 				// Leer body de respuesta con tolerancia a contenido no-JSON
