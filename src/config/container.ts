@@ -1,4 +1,4 @@
-import { SqliteDatabase } from '../infrastructure/database/SqliteDatabase';
+import { LibsqlDatabase } from '../infrastructure/database/LibsqlDatabase';
 import { InMemoryCache } from '../infrastructure/cache/InMemoryCache';
 import { CoinRepository } from '../core/repositories/CoinRepository';
 import { CoinService } from '../core/services/CoinService';
@@ -14,7 +14,7 @@ import type { Coin } from '../core/domain/models/Coin';
  */
 class Container {
     private static instance: Container;
-    private _database?: SqliteDatabase;
+    private _database?: LibsqlDatabase;
     private _cache?: InMemoryCache<Coin[]>;
     private _coinRepository?: CoinRepository;
     private _coinService?: CoinService;
@@ -31,9 +31,9 @@ class Container {
         return Container.instance;
     }
 
-    get database(): SqliteDatabase {
+    get database(): LibsqlDatabase {
         if (!this._database) {
-            this._database = new SqliteDatabase();
+            this._database = new LibsqlDatabase();
         }
         return this._database;
     }

@@ -34,6 +34,8 @@ Una aplicación web para gestionar tu colección de monedas. Sube fotos de moned
 
 ```sh
 npm install
+cp .env.example .env
+# Configura las variables de entorno en .env
 npm run dev
 ```
 
@@ -43,6 +45,25 @@ La app estará disponible en http://localhost:4321
 
 ```sh
 docker-compose up --build
+```
+
+### Configuración de base de datos
+
+La aplicación usa Turso (SQLite distribuido) para compatibilidad con Vercel y otros entornos serverless.
+
+1. Crea una cuenta en [Turso](https://turso.tech)
+2. Crea una nueva base de datos
+3. Copia la URL de la base de datos y el token de autenticación
+4. Configura las variables de entorno:
+
+```env
+TURSO_DATABASE_URL=your_turso_database_url
+TURSO_AUTH_TOKEN=your_turso_auth_token
+```
+
+Para desarrollo local, puedes usar un archivo SQLite local:
+```env
+TURSO_DATABASE_URL=file:coins.db
 ```
 
 ### Configuración de Google Cloud Vision (Opcional)
@@ -70,7 +91,7 @@ Sin esto, la app funciona con hashing básico.
 - Astro
 - React
 - Tailwind CSS
-- SQLite (better-sqlite3)
+- Turso (@libsql/client) - SQLite distribuido para serverless
 - Sharp (procesamiento de imágenes)
 - image-hash (hashing perceptual)
 - @google-cloud/vision (análisis IA)

@@ -8,15 +8,15 @@ import { logger } from '../../utils/logger/Logger';
  * Interfaz de repositorio para acceso a datos de monedas
  */
 export interface ICoinRepository {
-    create(coinData: CreateCoinData, imageData: Buffer): Coin;
-    findById(id: number): Coin | null;
-    findByHash(hash: string): Coin | null;
-    findAll(limit?: number, offset?: number): Coin[];
-    update(id: number, data: UpdateCoinData): boolean;
-    delete(id: number): boolean;
-    count(): number;
-    getAllForComparison(): Coin[];
-    getImage(id: number): Buffer | null;
+    create(coinData: CreateCoinData, imageData: Buffer): Promise<Coin>;
+    findById(id: number): Promise<Coin | null>;
+    findByHash(hash: string): Promise<Coin | null>;
+    findAll(limit?: number, offset?: number): Promise<Coin[]>;
+    update(id: number, data: UpdateCoinData): Promise<boolean>;
+    delete(id: number): Promise<boolean>;
+    count(): Promise<number>;
+    getAllForComparison(): Promise<Coin[]>;
+    getImage(id: number): Promise<Buffer | null>;
     invalidateCache(): void;
 }
 
@@ -33,16 +33,16 @@ export class CoinRepository implements ICoinRepository {
         this.cache = cache;
     }
 
-    create(coinData: CreateCoinData, imageData: Buffer): Coin {
+    async create(coinData: CreateCoinData, imageData: Buffer): Promise<Coin> {
         try {
-            const stmt = this.db.prepare(`
+            const stmt = await this.db.prepare(`
         INSERT INTO coins (
           name, description, image_data, hash, year, coin_type, mint, 
           approximate_value, rarity, country, denomination
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
-            const result = stmt.run(
+            const result = await stmt.runAsync(
                 coinData.name,
                 coinData.description,
                 imageData,
@@ -72,10 +72,10 @@ export class CoinRepository implements ICoinRepository {
         }
     }
 
-    findById(id: number): Coin | null {
+    async findById(id: number): Promise<Coin | null> {
         try {
-            const stmt = this.db.prepare('SELECT * FROM coins WHERE id = ?');
-            const row = stmt.get(id) as any;
+            const stmt = await this.db.prepare('SELECT * FROM coins WHERE id = ?');
+            const row = await stmt.getAsync(id) as any;
 
             if (!row) {
                 return null;
@@ -88,10 +88,10 @@ export class CoinRepository implements ICoinRepository {
         }
     }
 
-    findByHash(hash: string): Coin | null {
+    async findByHash(hash: string): Promise<Coin | null> {
         try {
-            const stmt = this.db.prepare('SELECT * FROM coins WHERE hash = ?');
-            const row = stmt.get(hash) as any;
+            const stmt = await this.db.prepare('SELECT * FROM coins WHERE hash = ?');
+            const row = await stmt.getAsync(hash) as any;
 
             if (!row) {
                 return null;
@@ -104,9 +104,9 @@ export class CoinRepository implements ICoinRepository {
         }
     }
 
-    findAll(limit = 50, offset = 0): Coin[] {
+    async findAll(limit = 50, offset = 0): Promise<Coin[]> {
         try {
-            const stmt = this.db.prepare(`
+            const stmt = await this.db.prepare(`
         SELECT id, name, description, hash, year, coin_type, mint, 
                approximate_value, rarity, country, denomination, date_added
         FROM coins 
@@ -114,7 +114,7 @@ export class CoinRepository implements ICoinRepository {
         LIMIT ? OFFSET ?
       `);
 
-            const rows = stmt.all(limit, offset) as any[];
+            const rows = await stmt.allAsync(limit, offset) as any[];
             return rows.map(row => this.mapRowToCoin(row));
         } catch (error) {
             logger.error('No se pudo encontrar todas las monedas', { error, limit, offset });
@@ -122,16 +122,16 @@ export class CoinRepository implements ICoinRepository {
         }
     }
 
-    update(id: number, data: UpdateCoinData): boolean {
+    async update(id: number, data: UpdateCoinData): Promise<boolean> {
         try {
-            const stmt = this.db.prepare(`
+            const stmt = await this.db.prepare(`
         UPDATE coins 
         SET name = ?, description = ?, year = ?, coin_type = ?, mint = ?, 
             approximate_value = ?, rarity = ?, country = ?, denomination = ?
         WHERE id = ?
       `);
 
-            const result = stmt.run(
+            const result = await stmt.runAsync(
                 data.name,
                 data.description,
                 data.year || null,
@@ -158,10 +158,10 @@ export class CoinRepository implements ICoinRepository {
         }
     }
 
-    delete(id: number): boolean {
+    async delete(id: number): Promise<boolean> {
         try {
-            const stmt = this.db.prepare('DELETE FROM coins WHERE id = ?');
-            const result = stmt.run(id);
+            const stmt = await this.db.prepare('DELETE FROM coins WHERE id = ?');
+            const result = await stmt.runAsync(id);
 
             this.invalidateCache();
 
@@ -177,10 +177,10 @@ export class CoinRepository implements ICoinRepository {
         }
     }
 
-    count(): number {
+    async count(): Promise<number> {
         try {
-            const stmt = this.db.prepare('SELECT COUNT(*) as count FROM coins');
-            const result = stmt.get() as any;
+            const stmt = await this.db.prepare('SELECT COUNT(*) as count FROM coins');
+            const result = await stmt.getAsync() as any;
             return result.count;
         } catch (error) {
             logger.error('No se pudo contar monedas', { error });
@@ -188,7 +188,7 @@ export class CoinRepository implements ICoinRepository {
         }
     }
 
-    getAllForComparison(): Coin[] {
+    async getAllForComparison(): Promise<Coin[]> {
         const cached = this.cache.get(CoinRepository.CACHE_KEY);
         if (cached) {
             logger.debug('Devolviendo monedas caché para comparación');
@@ -196,13 +196,13 @@ export class CoinRepository implements ICoinRepository {
         }
 
         try {
-            const stmt = this.db.prepare(`
+            const stmt = await this.db.prepare(`
         SELECT id, name, description, hash, year, coin_type, mint, 
                approximate_value, rarity, country, denomination, date_added
         FROM coins
       `);
 
-            const rows = stmt.all() as any[];
+            const rows = await stmt.allAsync() as any[];
             const coins = rows.map(row => this.mapRowToCoin(row));
 
             this.cache.set(CoinRepository.CACHE_KEY, coins);
@@ -215,10 +215,10 @@ export class CoinRepository implements ICoinRepository {
         }
     }
 
-    getImage(id: number): Buffer | null {
+    async getImage(id: number): Promise<Buffer | null> {
         try {
-            const stmt = this.db.prepare('SELECT image_data FROM coins WHERE id = ?');
-            const row = stmt.get(id) as any;
+            const stmt = await this.db.prepare('SELECT image_data FROM coins WHERE id = ?');
+            const row = await stmt.getAsync(id) as any;
 
             if (!row || !row.image_data) {
                 return null;

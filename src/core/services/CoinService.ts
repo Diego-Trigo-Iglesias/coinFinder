@@ -27,7 +27,7 @@ export class CoinService {
 
         logger.info('Creando moneda', { name: validatedData.name });
 
-        const coin = this.coinRepository.create(validatedData, imageData);
+        const coin = await this.coinRepository.create(validatedData, imageData);
 
         return coin;
     }
@@ -36,7 +36,7 @@ export class CoinService {
      * Obtener moneda por ID
      */
     async getCoinById(id: number): Promise<Coin> {
-        const coin = this.coinRepository.findById(id);
+        const coin = await this.coinRepository.findById(id);
 
         if (!coin) {
             throw new NotFoundError('Coin', id);
@@ -49,7 +49,7 @@ export class CoinService {
      * Obtener moneda por hash
      */
     async getCoinByHash(hash: string): Promise<Coin | null> {
-        return this.coinRepository.findByHash(hash);
+        return await this.coinRepository.findByHash(hash);
     }
 
     /**
@@ -59,8 +59,8 @@ export class CoinService {
         coins: Coin[];
         total: number;
     }> {
-        const coins = this.coinRepository.findAll(limit, offset);
-        const total = this.coinRepository.count();
+        const coins = await this.coinRepository.findAll(limit, offset);
+        const total = await this.coinRepository.count();
 
         return { coins, total };
     }
@@ -69,7 +69,7 @@ export class CoinService {
      * Obtener todas las monedas para comparación (en cache)
      */
     async getAllCoinsForComparison(): Promise<Coin[]> {
-        return this.coinRepository.getAllForComparison();
+        return await this.coinRepository.getAllForComparison();
     }
 
     /**
@@ -84,7 +84,7 @@ export class CoinService {
             rarity: data.rarity !== undefined ? validateRarity(data.rarity) : undefined,
         };
 
-        const updated = this.coinRepository.update(id, validatedData);
+        const updated = await this.coinRepository.update(id, validatedData);
 
         if (!updated) {
             throw new NotFoundError('Moneda', id);
@@ -97,7 +97,7 @@ export class CoinService {
      * Eliminar moneda
      */
     async deleteCoin(id: number): Promise<void> {
-        const deleted = this.coinRepository.delete(id);
+        const deleted = await this.coinRepository.delete(id);
 
         if (!deleted) {
             throw new NotFoundError('Moneda', id);
@@ -110,7 +110,7 @@ export class CoinService {
      * Obtener imagen de moneda
      */
     async getCoinImage(id: number): Promise<Buffer> {
-        const imageData = this.coinRepository.getImage(id);
+        const imageData = await this.coinRepository.getImage(id);
 
         if (!imageData) {
             throw new NotFoundError('Imagen de moneda', id);
@@ -123,6 +123,6 @@ export class CoinService {
      * Obtener conteo de monedas
      */
     async getCount(): Promise<number> {
-        return this.coinRepository.count();
+        return await this.coinRepository.count();
     }
 }

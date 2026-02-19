@@ -9,6 +9,14 @@ export const DATABASE_CONFIG = {
 } as const;
 
 /**
+ * Configuración de Turso
+ */
+export const TURSO_CONFIG = {
+    URL: process.env.TURSO_DATABASE_URL || 'file:coins.db',
+    AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN,
+} as const;
+
+/**
  * Configuración de caché
  */
 export const CACHE_CONFIG = {

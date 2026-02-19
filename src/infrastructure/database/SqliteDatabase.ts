@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import { createClient } from '@libsql/client';
 import path from 'path';
 import { DATABASE_CONFIG } from '../../config/constants';
 import { DatabaseError } from '../../utils/errors/AppError';
@@ -8,24 +8,73 @@ import { logger } from '../../utils/logger/Logger';
  * Interfaz de base de datos para inyección de dependencias
  */
 export interface IDatabase {
-    prepare(sql: string): Database.Statement;
-    exec(sql: string): void;
-    pragma(pragma: string): void;
-    close(): void;
+    prepare(sql: string): Promise<AsyncStatement>;
+    exec(sql: string): Promise<void>;
+    pragma(pragma: string): Promise<void>;
+    close(): Promise<void>;
 }
 
 /**
- * Implementación de base de datos SQLite con configuración adecuada
+ * Interfaz extendida de Statement con métodos async
+ */
+export interface AsyncStatement {
+    run(...params: any[]): { changes: number; lastInsertRowid: number };
+    get(...params: any[]): any;
+    all(...params: any[]): any[];
+    runAsync(...params: any[]): Promise<{ changes: number; lastInsertRowid: number }>;
+    getAsync(...params: any[]): Promise<any>;
+    allAsync(...params: any[]): Promise<any[]>;
+}
+
+/**
+ * Implementación de Statement usando libsql
+ */
+class LibsqlStatementImpl implements AsyncStatement {
+    constructor(private sql: string, private client: any) {}
+
+    // Sync methods for compatibility (though not used)
+    run(...params: any[]): { changes: number; lastInsertRowid: number } {
+        throw new Error('Use runAsync');
+    }
+
+    get(...params: any[]): any {
+        throw new Error('Use getAsync');
+    }
+
+    all(...params: any[]): any[] {
+        throw new Error('Use allAsync');
+    }
+
+    // Async methods
+    async runAsync(...params: any[]): Promise<{ changes: number; lastInsertRowid: number }> {
+        const result = await this.client.execute({ sql: this.sql, args: params });
+        return { changes: result.rowsAffected, lastInsertRowid: result.lastInsertRowid };
+    }
+
+    async getAsync(...params: any[]): Promise<any> {
+        const result = await this.client.execute({ sql: this.sql, args: params });
+        return result.rows[0] || null;
+    }
+
+    async allAsync(...params: any[]): Promise<any[]> {
+        const result = await this.client.execute({ sql: this.sql, args: params });
+        return result.rows;
+    }
+}
+
+/**
+ * Implementación de base de datos SQLite con configuración adecuada usando @libsql/client
  */
 export class SqliteDatabase implements IDatabase {
-    private db: Database.Database;
+    private client: any;
 
     constructor(dbPath?: string) {
         try {
             const resolvedPath = path.join(process.cwd(), dbPath || DATABASE_CONFIG.DB_PATH);
-            logger.info(`Inicializando base de datos en ${resolvedPath}`);
+            const url = `file:${resolvedPath}`;
+            logger.info(`Inicializando base de datos en ${url}`);
 
-            this.db = new Database(resolvedPath);
+            this.client = createClient({ url });
             this.configurePragmas();
             this.initializeTables();
 
@@ -36,14 +85,14 @@ export class SqliteDatabase implements IDatabase {
         }
     }
 
-    private configurePragmas(): void {
-        this.db.pragma(`journal_mode = ${DATABASE_CONFIG.JOURNAL_MODE}`);
-        this.db.pragma(`synchronous = ${DATABASE_CONFIG.SYNCHRONOUS}`);
-        this.db.pragma(`cache_size = ${DATABASE_CONFIG.CACHE_SIZE}`);
+    private async configurePragmas(): Promise<void> {
+        await this.client.execute(`PRAGMA journal_mode = ${DATABASE_CONFIG.JOURNAL_MODE}`);
+        await this.client.execute(`PRAGMA synchronous = ${DATABASE_CONFIG.SYNCHRONOUS}`);
+        await this.client.execute(`PRAGMA cache_size = ${DATABASE_CONFIG.CACHE_SIZE}`);
     }
 
-    private initializeTables(): void {
-        this.db.exec(`
+    private async initializeTables(): Promise<void> {
+        await this.client.execute(`
       CREATE TABLE IF NOT EXISTS coins (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -75,35 +124,20 @@ export class SqliteDatabase implements IDatabase {
     `);
     }
 
-    prepare(sql: string): Database.Statement {
-        try {
-            return this.db.prepare(sql);
-        } catch (error) {
-            logger.error('No se pudo preparar sentencia', { sql, error });
-            throw new DatabaseError('Failed to prepare SQL statement', error);
-        }
+    prepare(sql: string): Promise<AsyncStatement> {
+        return Promise.resolve(new LibsqlStatementImpl(sql, this.client));
     }
 
-    exec(sql: string): void {
-        try {
-            this.db.exec(sql);
-        } catch (error) {
-            logger.error('No se pudo ejecutar SQL', { sql, error });
-            throw new DatabaseError('Failed to execute SQL', error);
-        }
+    exec(sql: string): Promise<void> {
+        return this.client.execute(sql).then(() => {});
     }
 
-    pragma(pragma: string): void {
-        this.db.pragma(pragma);
+    pragma(pragma: string): Promise<void> {
+        return this.client.execute(`PRAGMA ${pragma}`).then(() => {});
     }
 
-    close(): void {
-        try {
-            this.db.close();
-            logger.info('Conexión de base de datos cerrada');
-        } catch (error) {
-            logger.error('No se pudo cerrar base de datos', { error });
-            throw new DatabaseError('Failed to close database', error);
-        }
+    close(): Promise<void> {
+        // libsql client doesn't have close, but it's fine
+        return Promise.resolve();
     }
 }

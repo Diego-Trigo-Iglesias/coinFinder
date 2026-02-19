@@ -4,24 +4,27 @@
  */
 
 let Database: any = null;
+const SQLITE_PACKAGE = 'better-sqlite3';
 
 export function getSqliteDatabase() {
   if (Database === null) {
-    // Only load at runtime
-    Database = require('better-sqlite3');
+    // Runtime require without static module resolution by TS
+    const runtimeRequire = eval('require') as (id: string) => any;
+    Database = runtimeRequire(SQLITE_PACKAGE);
   }
   return Database;
 }
 
 export async function getSqliteDatabaseAsync() {
   if (Database === null) {
-    // Dynamic import for ESM compatibility
     try {
-      const mod = await import('better-sqlite3');
+      // Runtime dynamic import without static module resolution by TS
+      const runtimeImport = new Function('m', 'return import(m)') as (m: string) => Promise<any>;
+      const mod = await runtimeImport(SQLITE_PACKAGE);
       Database = mod.default || mod;
     } catch (_) {
-      // Fallback to require if dynamic import fails
-      Database = require('better-sqlite3');
+      const runtimeRequire = eval('require') as (id: string) => any;
+      Database = runtimeRequire(SQLITE_PACKAGE);
     }
   }
   return Database;
