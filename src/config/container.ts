@@ -35,12 +35,17 @@ class Container {
     get database(): any {
         if (!this._database) {
             const tursoUrl = process.env.TURSO_DATABASE_URL || undefined;
-
-            // On Vercel (serverless) prefer the remote Turso DB when configured.
-            // If no remote URL is provided or it's a file URL, use local Sqlite implementation.
             const isServerless = !!process.env.VERCEL || process.env.NODE_ENV === 'production';
 
-            if (tursoUrl && !tursoUrl.startsWith('file:') && isServerless) {
+            if (isServerless) {
+                if (!tursoUrl || tursoUrl.startsWith('file:')) {
+                    const msg = 'En entornos serverless (Vercel) se requiere configurar TURSO_DATABASE_URL a una instancia Turso remota. No se puede usar SQLite local (file:) en funciones serverless.';
+                    // Registrar para facilitar debugging
+                    // eslint-disable-next-line no-console
+                    console.error(msg, { tursoUrl, isServerless });
+                    throw new Error(msg);
+                }
+
                 this._database = new LibsqlDatabase();
             } else {
                 // Local development or explicit file URL: use SqliteDatabase
