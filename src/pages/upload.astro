@@ -92,6 +92,51 @@ export const prerender = false;
 		console.error('Missing required DOM elements');
 	}
 
+// Comprobar disponibilidad de cámara y deshabilitar el botón si no existe
+function disableCameraButton() {
+	if (!cameraBtn) return;
+	cameraBtn.disabled = true;
+	cameraBtn.classList.add('opacity-50', 'cursor-not-allowed');
+	cameraBtn.setAttribute('aria-disabled', 'true');
+}
+
+async function checkCameraAvailability() {
+	try {
+		if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+			// API no disponible
+			disableCameraButton();
+			return;
+		}
+
+		const devices = await navigator.mediaDevices.enumerateDevices();
+		const hasVideoInput = devices.some((d) => d.kind === 'videoinput');
+		if (!hasVideoInput) disableCameraButton();
+	} catch (err) {
+		// Si ocurre error al enumerar, intentar fallback con getUserMedia
+		try {
+			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+				disableCameraButton();
+			}
+		} catch (e) {
+			disableCameraButton();
+		}
+	}
+}
+
+// Ejecutar comprobación al cargar la página
+checkCameraAvailability();
+
+// Helper para escapar HTML en mensajes devueltos por el servidor
+function escapeHtml(unsafe: string | null | undefined) {
+	if (!unsafe) return '';
+	return String(unsafe)
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#039;');
+}
+
 	// Botones de acción
 	if (cameraBtn) {
 		cameraBtn.addEventListener('click', () => {
@@ -169,7 +214,23 @@ export const prerender = false;
 					method: 'POST',
 					body: formData
 				});
-				const data = await response.json();
+
+				// Leer body de respuesta con tolerancia a contenido no-JSON
+				let data: any = null;
+				const respText = await response.text();
+				try {
+					data = respText ? JSON.parse(respText) : null;
+				} catch (e) {
+					data = { error: respText };
+				}
+
+				if (!response.ok) {
+					console.error('Upload failed', response.status, response.statusText, data);
+					if (resultsDiv) {
+						resultsDiv.innerHTML = `<div class="bg-red-100 text-red-700 p-4 rounded-lg border-l-4 border-red-400 flex items-start gap-3"><div><strong>Error ${response.status} ${response.statusText}</strong></div><div class="mt-2">${(data && data.error) ? String(data.error) : escapeHtml(respText)}</div></div>`;
+					}
+					return;
+				}
 
 				if (data.error) {
 					if (resultsDiv) {
