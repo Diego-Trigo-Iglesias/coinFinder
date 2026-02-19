@@ -13,7 +13,7 @@ class LibsqlStatementImpl implements AsyncStatement {
     private client: any,
   ) {}
 
-  // Sync methods for compatibility (though not used)
+  // Métodos síncronos para compatibilidad (aunque no se usan)
   run(): { changes: number; lastInsertRowid: number } {
     throw new Error("Use runAsync");
   }
@@ -26,7 +26,7 @@ class LibsqlStatementImpl implements AsyncStatement {
     throw new Error("Use allAsync");
   }
 
-  // Async methods
+  // Métodos asíncronos
   async runAsync( ...params: any[] ): Promise<{ changes: number; lastInsertRowid: number }> {
     const result = await this.client.execute({ sql: this.sql, args: params });
     return {
@@ -51,18 +51,38 @@ class LibsqlStatementImpl implements AsyncStatement {
  */
 export class LibsqlDatabase implements IDatabase {
   private client: any;
-
   constructor() {
+    // No inicializar el cliente en el constructor: usamos inicialización perezosa
+    this.client = null;
+    logger.info('LibsqlDatabase creado (inicialización perezosa).', {
+      tursoUrl: TURSO_CONFIG.URL,
+      hasAuthToken: !!TURSO_CONFIG.AUTH_TOKEN,
+    });
+  }
+
+  /**
+   * Asegura que el cliente libsql esté creado y las tablas inicializadas.
+   * Se invoca en la primera operación de BD para evitar fallos en cold starts
+   * y para proporcionar registros más claros cuando se ejecuta en entornos serverless.
+   */
+  private async ensureClientInitialized(): Promise<void> {
+    if (this.client) return;
+
+    logger.info('Inicializando cliente Turso (lazy)...', { url: TURSO_CONFIG.URL });
+
     try {
-      this.client = createClient({
+      this.client = createClient({ url: TURSO_CONFIG.URL, authToken: TURSO_CONFIG.AUTH_TOKEN });
+      await this.initializeTables();
+      logger.info('Cliente Turso inicializado correctamente');
+    } catch (error: any) {
+      // Registrar detalles estructurados pero evitar filtrar secretos
+      logger.error('Error inicializando cliente Turso', {
+        message: error?.message,
+        stack: error?.stack,
         url: TURSO_CONFIG.URL,
-        authToken: TURSO_CONFIG.AUTH_TOKEN,
+        hasAuthToken: !!TURSO_CONFIG.AUTH_TOKEN,
       });
-      logger.info(`Inicializando base de datos Turso en ${TURSO_CONFIG.URL}`);
-      this.initializeTables();
-    } catch (error) {
-      logger.error("No se pudo inicializar base de datos Turso", { error });
-      throw new DatabaseError("Failed to initialize Turso database", error);
+      throw new DatabaseError('No se pudo inicializar la base de datos Turso (lazy)', error);
     }
   }
 
@@ -106,15 +126,24 @@ export class LibsqlDatabase implements IDatabase {
   }
 
   prepare(sql: string): Promise<AsyncStatement> {
-    return Promise.resolve(new LibsqlStatementImpl(sql, this.client));
+    return (async () => {
+      await this.ensureClientInitialized();
+      return new LibsqlStatementImpl(sql, this.client);
+    })();
   }
 
   exec(sql: string): Promise<void> {
-    return this.client.execute(sql).then(() => {});
+    return (async () => {
+      await this.ensureClientInitialized();
+      return this.client.execute(sql).then(() => {});
+    })();
   }
 
   pragma(pragma: string): Promise<void> {
-    return this.client.execute(`PRAGMA ${pragma}`).then(() => {});
+    return (async () => {
+      await this.ensureClientInitialized();
+      return this.client.execute(`PRAGMA ${pragma}`).then(() => {});
+    })();
   }
 
   close(): Promise<void> {

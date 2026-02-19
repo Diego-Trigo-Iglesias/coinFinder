@@ -1,4 +1,5 @@
 import { LibsqlDatabase } from '../infrastructure/database/LibsqlDatabase';
+import { SqliteDatabase } from '../infrastructure/database/SqliteDatabase';
 import { InMemoryCache } from '../infrastructure/cache/InMemoryCache';
 import { CoinRepository } from '../core/repositories/CoinRepository';
 import { CoinService } from '../core/services/CoinService';
@@ -14,7 +15,7 @@ import type { Coin } from '../core/domain/models/Coin';
  */
 class Container {
     private static instance: Container;
-    private _database?: LibsqlDatabase;
+    private _database?: any;
     private _cache?: InMemoryCache<Coin[]>;
     private _coinRepository?: CoinRepository;
     private _coinService?: CoinService;
@@ -31,9 +32,20 @@ class Container {
         return Container.instance;
     }
 
-    get database(): LibsqlDatabase {
+    get database(): any {
         if (!this._database) {
-            this._database = new LibsqlDatabase();
+            const tursoUrl = process.env.TURSO_DATABASE_URL || undefined;
+
+            // On Vercel (serverless) prefer the remote Turso DB when configured.
+            // If no remote URL is provided or it's a file URL, use local Sqlite implementation.
+            const isServerless = !!process.env.VERCEL || process.env.NODE_ENV === 'production';
+
+            if (tursoUrl && !tursoUrl.startsWith('file:') && isServerless) {
+                this._database = new LibsqlDatabase();
+            } else {
+                // Local development or explicit file URL: use SqliteDatabase
+                this._database = new SqliteDatabase();
+            }
         }
         return this._database;
     }
