@@ -88,36 +88,38 @@ export class LibsqlDatabase implements IDatabase {
 
   private async initializeTables(): Promise<void> {
     try {
-      await this.client.execute(`
-                CREATE TABLE IF NOT EXISTS coins (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL,
-                    description TEXT DEFAULT '',
-                    image_data BLOB NOT NULL,
-                    hash TEXT UNIQUE NOT NULL,
-                    year TEXT,
-                    coin_type TEXT,
-                    mint TEXT,
-                    approximate_value TEXT,
-                    rarity INTEGER DEFAULT 1 CHECK(rarity >= 1 AND rarity <= 5),
-                    country TEXT,
-                    denomination TEXT,
-                    date_added DATETIME DEFAULT CURRENT_TIMESTAMP
-                );
+      const statements = [
+        `CREATE TABLE IF NOT EXISTS coins (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT DEFAULT '',
+            image_data BLOB NOT NULL,
+            hash TEXT UNIQUE NOT NULL,
+            year TEXT,
+            coin_type TEXT,
+            mint TEXT,
+            approximate_value TEXT,
+            rarity INTEGER DEFAULT 1 CHECK(rarity >= 1 AND rarity <= 5),
+            country TEXT,
+            denomination TEXT,
+            date_added DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`,
+        `CREATE TABLE IF NOT EXISTS uploads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            images TEXT NOT NULL,
+            results TEXT NOT NULL,
+            date_uploaded DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`,
+        `CREATE INDEX IF NOT EXISTS idx_coins_hash ON coins(hash)`,
+        `CREATE INDEX IF NOT EXISTS idx_coins_year ON coins(year)`,
+        `CREATE INDEX IF NOT EXISTS idx_coins_coin_type ON coins(coin_type)`,
+        `CREATE INDEX IF NOT EXISTS idx_coins_country ON coins(country)`,
+        `CREATE INDEX IF NOT EXISTS idx_uploads_date ON uploads(date_uploaded DESC)`
+      ];
 
-                CREATE TABLE IF NOT EXISTS uploads (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    images TEXT NOT NULL,
-                    results TEXT NOT NULL,
-                    date_uploaded DATETIME DEFAULT CURRENT_TIMESTAMP
-                );
-
-                CREATE INDEX IF NOT EXISTS idx_coins_hash ON coins(hash);
-                CREATE INDEX IF NOT EXISTS idx_coins_year ON coins(year);
-                CREATE INDEX IF NOT EXISTS idx_coins_coin_type ON coins(coin_type);
-                CREATE INDEX IF NOT EXISTS idx_coins_country ON coins(country);
-                CREATE INDEX IF NOT EXISTS idx_uploads_date ON uploads(date_uploaded DESC);
-            `);
+      for (const sql of statements) {
+        await this.client.execute({ sql });
+      }
       logger.info("Tablas de base de datos inicializadas");
     } catch (error) {
       logger.error("No se pudo inicializar tablas", { error });
