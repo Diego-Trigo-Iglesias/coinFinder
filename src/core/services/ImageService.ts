@@ -4,9 +4,7 @@ import { IMAGE_CONFIG } from '../../config/constants';
 import { ProcessingError } from '../../utils/errors/AppError';
 import { logger } from '../../utils/logger/Logger';
 
-/**
- * Servicio para operaciones de procesamiento de imágenes
- */
+// Servicio para operaciones de procesamiento de imágenes
 export class ImageService {
     /**
      * Computar hash perceptual (dHash) desde buffer de imagen
@@ -53,10 +51,7 @@ export class ImageService {
             const hexHash = parseInt(hash.substring(0, 32), 2).toString(16).padStart(8, '0') +
                 parseInt(hash.substring(32, 64), 2).toString(16).padStart(8, '0');
 
-            logger.debug('Hash perceptual computado', {
-                hashLength: hexHash.length,
-                hash: hexHash
-            });
+            logger.debug('Hash perceptual computado', { hashLength: hexHash.length, hash: hexHash });
 
             return hexHash;
         } catch (error) {
@@ -65,9 +60,7 @@ export class ImageService {
         }
     }
 
-    /**
-     * Procesar y redimensionar imagen para almacenamiento
-     */
+    // Procesar y redimensionar imagen para almacenamiento
     async processForStorage(buffer: ArrayBuffer): Promise<Buffer> {
         try {
             const buf = Buffer.from(buffer);
@@ -94,9 +87,7 @@ export class ImageService {
         }
     }
 
-    /**
-     * Crear miniatura para vista previa
-     */
+    // Crear miniatura para vista previa
     async createThumbnail(imageData: Buffer): Promise<string> {
         try {
             const thumbnail = await sharp(imageData)

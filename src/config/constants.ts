@@ -54,18 +54,14 @@ export const COMPARISON_CONFIG = {
     METADATA_SCORE_THRESHOLD: 15,
 } as const;
 
-/**
- * Configuración de paginación
- */
+//Configuración de paginación
 export const PAGINATION_CONFIG = {
     DEFAULT_LIMIT: 50,
     MAX_LIMIT: 100,
     MIN_PAGE: 1,
 } as const;
 
-/**
- * Restricciones de validación
- */
+//Restricciones de validación
 export const VALIDATION_CONFIG = {
     MAX_TITLE_LENGTH: 255,
     MAX_DESCRIPTION_LENGTH: 500,
@@ -73,9 +69,7 @@ export const VALIDATION_CONFIG = {
     MAX_RARITY: 5,
 } as const;
 
-/**
- * Códigos de estado HTTP
- */
+//Códigos de estado HTTP
 export const HTTP_STATUS = {
     OK: 200,
     BAD_REQUEST: 400,
@@ -83,9 +77,7 @@ export const HTTP_STATUS = {
     INTERNAL_SERVER_ERROR: 500,
 } as const;
 
-/**
- * Códigos de error para errores de aplicación
- */
+//Códigos de error para errores de aplicación
 export const ERROR_CODES = {
     VALIDATION_ERROR: 'VALIDATION_ERROR',
     NOT_FOUND: 'NOT_FOUND',

@@ -3,13 +3,9 @@ import type { AnalysisResult, MatchResult } from '../domain/models/Analysis';
 import { COMPARISON_CONFIG } from '../../config/constants';
 import { logger } from '../../utils/logger/Logger';
 
-/**
- * Servicio para comparar imágenes de monedas y detectar duplicados
- */
+//Servicio para comparar imágenes de monedas y detectar duplicados
 export class ComparisonService {
-    /**
-     * Calcular distancia de Hamming entre dos cadenas hash
-     */
+    //Calcular distancia de Hamming entre dos cadenas hash
     calculateHammingDistance(hash1: string, hash2: string): number {
         let distance = 0;
         const len = Math.min(hash1.length, hash2.length);
@@ -23,9 +19,7 @@ export class ComparisonService {
         return distance;
     }
 
-    /**
-     * Encontrar la mejor coincidencia para un hash de moneda entre monedas existentes
-     */
+    //Encontrar la mejor coincidencia para un hash de moneda entre monedas existentes
     findBestMatch(
         targetHash: string,
         aiInfo: AnalysisResult,
@@ -75,15 +69,8 @@ export class ComparisonService {
         };
     }
 
-    /**
-     * Verificar si dos monedas coinciden basadas en distancia hash y metadatos
-     */
-    private isMatch(
-        distance: number,
-        metadataScore: number,
-        aiInfo: AnalysisResult,
-        coin: Coin
-    ): boolean {
+    // Verificar si dos monedas coinciden basadas en distancia hash y metadatos
+    private isMatch( distance: number, metadataScore: number, aiInfo: AnalysisResult, coin: Coin ): boolean {
         // Coincidencia exacta por hash
         if (distance < COMPARISON_CONFIG.HAMMING_THRESHOLD_EXACT) {
             return true;
@@ -109,9 +96,7 @@ export class ComparisonService {
         return false;
     }
 
-    /**
-     * Calcular puntuación de similitud de metadatos
-     */
+    // Calcular puntuación de similitud de metadatos
     private calculateMetadataScore(aiInfo: AnalysisResult, coin: Coin): number {
         let score = 0;
 
@@ -134,9 +119,7 @@ export class ComparisonService {
         return score;
     }
 
-    /**
-     * Encontrar duplicados dentro de un lote de imágenes
-     */
+    // Encontrar duplicados dentro de un lote de imágenes
     findBatchDuplicates(
         images: Array<{ index: number; hash: string }>
     ): Array<{ primaryIndex: number; duplicateIndex: number; distance: number }> {

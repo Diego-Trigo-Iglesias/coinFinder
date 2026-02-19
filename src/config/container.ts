@@ -17,6 +17,7 @@ class Container {
     private static instance: Container;
     private _database?: any;
     private _cache?: InMemoryCache<Coin[]>;
+    private _predictionCache?: InMemoryCache<any>;
     private _coinRepository?: CoinRepository;
     private _coinService?: CoinService;
     private _imageService?: ImageService;
@@ -48,7 +49,6 @@ class Container {
 
                 this._database = new LibsqlDatabase();
             } else {
-                // Local development or explicit file URL: use SqliteDatabase
                 this._database = new SqliteDatabase();
             }
         }
@@ -60,6 +60,13 @@ class Container {
             this._cache = new InMemoryCache<Coin[]>(CACHE_CONFIG.TTL_MS);
         }
         return this._cache;
+    }
+
+    get predictionCache(): InMemoryCache<any> {
+        if (!this._predictionCache) {
+            this._predictionCache = new InMemoryCache<any>(CACHE_CONFIG.TTL_MS);
+        }
+        return this._predictionCache;
     }
 
     get coinRepository(): CoinRepository {

@@ -4,15 +4,11 @@ import { NotFoundError } from '../../utils/errors/AppError';
 import { validateTitle, validateDescription, validateRarity } from '../../utils/validation/CoinValidator';
 import { logger } from '../../utils/logger/Logger';
 
-/**
- * Servicio para lógica de negocio de monedas
- */
+//Servicio para lógica de negocio de monedas
 export class CoinService {
     constructor(private coinRepository: ICoinRepository) { }
 
-    /**
-     * Crear una nueva moneda
-     */
+    //Crear una nueva moneda
     async createCoin(
         coinData: CreateCoinData,
         imageData: Buffer
@@ -32,9 +28,7 @@ export class CoinService {
         return coin;
     }
 
-    /**
-     * Obtener moneda por ID
-     */
+    // Obtener moneda por ID
     async getCoinById(id: number): Promise<Coin> {
         const coin = await this.coinRepository.findById(id);
 
@@ -45,16 +39,12 @@ export class CoinService {
         return coin;
     }
 
-    /**
-     * Obtener moneda por hash
-     */
+    // Obtener moneda por hash
     async getCoinByHash(hash: string): Promise<Coin | null> {
         return await this.coinRepository.findByHash(hash);
     }
 
-    /**
-     * Obtener todas las monedas con paginación
-     */
+    // Obtener todas las monedas con paginación
     async getAllCoins(limit?: number, offset?: number): Promise<{
         coins: Coin[];
         total: number;
@@ -65,16 +55,12 @@ export class CoinService {
         return { coins, total };
     }
 
-    /**
-     * Obtener todas las monedas para comparación (en cache)
-     */
+    // Obtener todas las monedas para comparación (en cache)
     async getAllCoinsForComparison(): Promise<Coin[]> {
         return await this.coinRepository.getAllForComparison();
     }
 
-    /**
-     * Actualizar moneda
-     */
+    // Actualizar moneda
     async updateCoin(id: number, data: UpdateCoinData): Promise<Coin> {
         // Validar entrada
         const validatedData: UpdateCoinData = {
@@ -93,9 +79,7 @@ export class CoinService {
         return this.getCoinById(id);
     }
 
-    /**
-     * Eliminar moneda
-     */
+    // Eliminar moneda
     async deleteCoin(id: number): Promise<void> {
         const deleted = await this.coinRepository.delete(id);
 
@@ -106,9 +90,7 @@ export class CoinService {
         logger.info('Moneda eliminada', { id });
     }
 
-    /**
-     * Obtener imagen de moneda
-     */
+    // Obtener imagen de moneda
     async getCoinImage(id: number): Promise<Buffer> {
         const imageData = await this.coinRepository.getImage(id);
 
@@ -119,9 +101,7 @@ export class CoinService {
         return imageData;
     }
 
-    /**
-     * Obtener conteo de monedas
-     */
+    // Obtener conteo de monedas
     async getCount(): Promise<number> {
         return await this.coinRepository.count();
     }

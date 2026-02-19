@@ -9,3 +9,15 @@ services:
       - ./coins.db:/app/coins.db
     environment:
       - NODE_ENV=production
+      - ML_SERVER_URL=http://ml_inference:8000/predict
+  ml_inference:
+    build:
+      context: .
+      dockerfile: ml_pipeline/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ml_pipeline:/app/ml_pipeline
+    environment:
+      - COINFINDER_MODEL_PATH=/app/ml_pipeline/model.joblib
+      - COINFINDER_CLIP_MODEL=openai/clip-vit-base-patch32

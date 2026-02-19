@@ -11,6 +11,8 @@ export interface AnalysisResult {
     country?: string;
     denomination?: string;
     rarity: number;
+    confidence?: number; // 0-100
+    suggestions?: string[]; // acciones recomendadas para el usuario
 }
 
 /**

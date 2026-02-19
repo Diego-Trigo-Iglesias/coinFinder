@@ -23,3 +23,18 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# ML pipeline artifacts
+ml_pipeline/*.joblib
+ml_pipeline/*.npz
+ml_pipeline/dataset.json
+ml_pipeline/processed/
+ml_pipeline/__pycache__/
+
+# local docker mounts / temp
+temp.txt
+
+# local sqlite DB artifacts
+coins.db
+coins.db-shm
+coins.db-wal

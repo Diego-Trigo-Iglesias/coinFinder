@@ -64,7 +64,8 @@ export const POST: APIRoute = async ({ request }) => {
 
     logger.info('Carga en procesamiento', { fileCount: files.length });
 
-    // Procesar todas las imágenes en paralelo
+    // Procesar todas las imágenes en paralelo con caching de predicciones
+    const predictionCache = container.predictionCache;
     const processedImages = await Promise.all(
       files.map(async (file, i) => {
         const title = titles[i] || file.name;
@@ -73,7 +74,15 @@ export const POST: APIRoute = async ({ request }) => {
         const buffer = await file.arrayBuffer();
         const imageData = await imageService.processForStorage(buffer);
         const hash = await imageService.computeHash(imageData);
-        const aiInfo = await analysisService.analyzeCoinImage(imageData);
+
+        // Revisar caché por hash antes de llamar al servicio ML
+        let aiInfo: any = predictionCache.get(hash);
+        if (!aiInfo) {
+          aiInfo = await analysisService.analyzeCoinImage(imageData);
+          // Guardar en caché (valor completo de aiInfo)
+          predictionCache.set(hash, aiInfo);
+        }
+
         const thumbnail = await imageService.createThumbnail(imageData);
 
         return { file, imageData, hash, aiInfo, title, description, thumbnail, index: i };
