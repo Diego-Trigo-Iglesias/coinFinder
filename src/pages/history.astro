@@ -1,9 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getAllUploads } from '../lib/db';
-import { AlertCircle } from '@lucide/astro';
 
-const uploads = getAllUploads.all().reverse();
+// TODO: Implementar historial real cuando exista fuente de datos.
+const uploads: any[] = [];
 ---
 
 <Layout>
