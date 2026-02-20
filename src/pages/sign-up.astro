@@ -1,0 +1,9 @@
+---
+import { SignUp } from '@clerk/astro/components';
+---
+
+<main class="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+  <div class="bg-white shadow-lg rounded-xl p-6 w-full max-w-md">
+    <SignUp path="/sign-up" routing="path" afterSignUpUrl="/collection" signInUrl="/sign-in" />
+  </div>
+</main>

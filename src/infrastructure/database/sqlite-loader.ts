@@ -8,7 +8,6 @@ const SQLITE_PACKAGE = 'better-sqlite3';
 
 export function getSqliteDatabase() {
   if (Database === null) {
-    // Runtime require without static module resolution by TS
     const runtimeRequire = eval('require') as (id: string) => any;
     Database = runtimeRequire(SQLITE_PACKAGE);
   }
@@ -18,7 +17,6 @@ export function getSqliteDatabase() {
 export async function getSqliteDatabaseAsync() {
   if (Database === null) {
     try {
-      // Runtime dynamic import without static module resolution by TS
       const runtimeImport = new Function('m', 'return import(m)') as (m: string) => Promise<any>;
       const mod = await runtimeImport(SQLITE_PACKAGE);
       Database = mod.default || mod;

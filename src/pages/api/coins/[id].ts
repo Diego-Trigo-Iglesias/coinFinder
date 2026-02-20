@@ -9,7 +9,6 @@ export const GET: APIRoute = async ({ params }) => {
   try {
     // Import dinámico para evitar problemas con better-sqlite3 en ESM
     const { container } = await import('../../../config/container');
-    
     const id = params.id;
     if (!id) {
       throw new ValidationError('ID is required');
@@ -37,7 +36,6 @@ export const PUT: APIRoute = async ({ params, request }) => {
   try {
     // Import dinámico para evitar problemas con better-sqlite3 en ESM
     const { container } = await import('../../../config/container');
-    
     const id = params.id;
     if (!id) {
       throw new ValidationError('ID is required');

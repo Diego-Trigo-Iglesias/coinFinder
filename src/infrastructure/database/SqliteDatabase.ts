@@ -1,98 +1,100 @@
-import { createClient } from '@libsql/client';
-import path from 'path';
-import { DATABASE_CONFIG } from '../../config/constants';
-import { DatabaseError } from '../../utils/errors/AppError';
-import { logger } from '../../utils/logger/Logger';
+import { createClient } from "@libsql/client";
+import * as path from "path";
+import { DATABASE_CONFIG } from "../../config/constants";
+import { DatabaseError } from "../../utils/errors/AppError";
+import { logger } from "../../utils/logger/Logger";
 
 /**
  * Interfaz de base de datos para inyección de dependencias
  */
 export interface IDatabase {
-    prepare(sql: string): Promise<AsyncStatement>;
-    exec(sql: string): Promise<void>;
-    pragma(pragma: string): Promise<void>;
-    close(): Promise<void>;
+  prepare(sql: string): Promise<AsyncStatement>;
+  exec(sql: string): Promise<void>;
+  pragma(pragma: string): Promise<void>;
+  close(): Promise<void>;
 }
 
 /**
  * Interfaz extendida de Statement con métodos async
  */
 export interface AsyncStatement {
-    run(...params: any[]): { changes: number; lastInsertRowid: number };
-    get(...params: any[]): any;
-    all(...params: any[]): any[];
-    runAsync(...params: any[]): Promise<{ changes: number; lastInsertRowid: number }>;
-    getAsync(...params: any[]): Promise<any>;
-    allAsync(...params: any[]): Promise<any[]>;
+  run(...params: any[]): { changes: number; lastInsertRowid: number };
+  get(...params: any[]): any;
+  all(...params: any[]): any[];
+  runAsync( ...params: any[] ): Promise<{ changes: number; lastInsertRowid: number }>;
+  getAsync(...params: any[]): Promise<any>;
+  allAsync(...params: any[]): Promise<any[]>;
 }
 
 /**
  * Implementación de Statement usando libsql
  */
 class LibsqlStatementImpl implements AsyncStatement {
-    constructor(private sql: string, private client: any) {}
+  constructor( private sql: string, private client: any ) {}
 
-    // Sync methods for compatibility (though not used)
-    run(...params: any[]): { changes: number; lastInsertRowid: number } {
-        throw new Error('Use runAsync');
-    }
+  run(): { changes: number; lastInsertRowid: number } {
+    throw new Error("Use runAsync");
+  }
 
-    get(...params: any[]): any {
-        throw new Error('Use getAsync');
-    }
+  get(): any {
+    throw new Error("Use getAsync");
+  }
 
-    all(...params: any[]): any[] {
-        throw new Error('Use allAsync');
-    }
+  all(): any[] {
+    throw new Error("Use allAsync");
+  }
 
-    // Async methods
-    async runAsync(...params: any[]): Promise<{ changes: number; lastInsertRowid: number }> {
-        const result = await this.client.execute({ sql: this.sql, args: params });
-        return { changes: result.rowsAffected, lastInsertRowid: result.lastInsertRowid };
-    }
+  // Async methods
+  async runAsync( ...params: any[] ): Promise<{ changes: number; lastInsertRowid: number }> {
+    const result = await this.client.execute({ sql: this.sql, args: params });
+    return {
+      changes: result.rowsAffected,
+      lastInsertRowid: result.lastInsertRowid,
+    };
+  }
 
-    async getAsync(...params: any[]): Promise<any> {
-        const result = await this.client.execute({ sql: this.sql, args: params });
-        return result.rows[0] || null;
-    }
+  async getAsync(...params: any[]): Promise<any> {
+    const result = await this.client.execute({ sql: this.sql, args: params });
+    return result.rows[0] || null;
+  }
 
-    async allAsync(...params: any[]): Promise<any[]> {
-        const result = await this.client.execute({ sql: this.sql, args: params });
-        return result.rows;
-    }
+  async allAsync(...params: any[]): Promise<any[]> {
+    const result = await this.client.execute({ sql: this.sql, args: params });
+    return result.rows;
+  }
 }
 
 /**
  * Implementación de base de datos SQLite con configuración adecuada usando @libsql/client
  */
 export class SqliteDatabase implements IDatabase {
-    private client: any;
+  private client: any;
 
-    constructor(dbPath?: string) {
-        try {
-            const resolvedPath = path.join(process.cwd(), dbPath || DATABASE_CONFIG.DB_PATH);
-            const url = `file:${resolvedPath}`;
-            logger.info(`Inicializando base de datos en ${url}`);
+  constructor(dbPath?: string) {
+    try {
+      const resolvedPath = path.join( process.cwd(), dbPath || DATABASE_CONFIG.DB_PATH );
+      const url = `file:${resolvedPath}`;
+      logger.info(`Inicializando base de datos en ${url}`);
 
-            this.client = createClient({ url });
-            this.configurePragmas();
-            this.initializeTables();
+      this.client = createClient({ url });
+      this.configurePragmas();
+      this.initializeTables();
 
-            logger.info('Base de datos inicializada correctamente');
-        } catch (error) {
-            logger.error('No se pudo inicializar base de datos', { error });
-            throw new DatabaseError('Failed to initialize database', error);
-        }
+      logger.info("Base de datos inicializada correctamente");
+    } catch (error) {
+      logger.error("No se pudo inicializar base de datos", { error });
+      throw new DatabaseError("Failed to initialize database", error);
     }
+  }
 
-    private async configurePragmas(): Promise<void> {
-        await this.client.execute(`PRAGMA journal_mode = ${DATABASE_CONFIG.JOURNAL_MODE}`);
-        await this.client.execute(`PRAGMA synchronous = ${DATABASE_CONFIG.SYNCHRONOUS}`);
-        await this.client.execute(`PRAGMA cache_size = ${DATABASE_CONFIG.CACHE_SIZE}`);
-    }
+  private async configurePragmas(): Promise<void> {
+    await this.client.execute( `PRAGMA journal_mode = ${DATABASE_CONFIG.JOURNAL_MODE}` );
+    await this.client.execute( `PRAGMA synchronous = ${DATABASE_CONFIG.SYNCHRONOUS}` );
+    await this.client.execute( `PRAGMA cache_size = ${DATABASE_CONFIG.CACHE_SIZE}` );
+  }
 
-    private async initializeTables(): Promise<void> {
-        await this.client.execute(`
+  private async initializeTables(): Promise<void> {
+    await this.client.execute(`
       CREATE TABLE IF NOT EXISTS coins (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -122,22 +124,21 @@ export class SqliteDatabase implements IDatabase {
       CREATE INDEX IF NOT EXISTS idx_coins_country ON coins(country);
       CREATE INDEX IF NOT EXISTS idx_uploads_date ON uploads(date_uploaded DESC);
     `);
-    }
+  }
 
-    prepare(sql: string): Promise<AsyncStatement> {
-        return Promise.resolve(new LibsqlStatementImpl(sql, this.client));
-    }
+  prepare(sql: string): Promise<AsyncStatement> {
+    return Promise.resolve(new LibsqlStatementImpl(sql, this.client));
+  }
 
-    exec(sql: string): Promise<void> {
-        return this.client.execute(sql).then(() => {});
-    }
+  exec(sql: string): Promise<void> {
+    return this.client.execute(sql).then(() => {});
+  }
 
-    pragma(pragma: string): Promise<void> {
-        return this.client.execute(`PRAGMA ${pragma}`).then(() => {});
-    }
+  pragma(pragma: string): Promise<void> {
+    return this.client.execute(`PRAGMA ${pragma}`).then(() => {});
+  }
 
-    close(): Promise<void> {
-        // libsql client doesn't have close, but it's fine
-        return Promise.resolve();
-    }
+  close(): Promise<void> {
+    return Promise.resolve();
+  }
 }

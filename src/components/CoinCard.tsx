@@ -7,9 +7,9 @@ interface CoinCardProps {
     dateAdded: string;
 }
 
-/**
- * Reusable coin card component for displaying coins in grid
- */
+// Este componente muestra una tarjeta para cada moneda, con su imagen,
+//  nombre y fecha de adición. Al hacer hover, muestra un overlay con un enlace para ver detalles.
+//  El enlace apunta a una ruta dinámica basada en el ID de la moneda.
 export function CoinCard({ id, name, imageUrl, dateAdded }: CoinCardProps) {
     return (
         <a href={`/coin-detail/${id}`} className="group cursor-pointer block">

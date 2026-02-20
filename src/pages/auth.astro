@@ -1,0 +1,65 @@
+---
+import { SignIn, SignUp } from '@clerk/astro/components';
+---
+
+<main class="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+  <div class="w-full max-w-5xl grid md:grid-cols-2 gap-6 items-start">
+    <section class="bg-white shadow-md rounded-xl p-6 border border-gray-100">
+      <p class="text-sm uppercase tracking-wide text-blue-600 font-semibold mb-2">Bienvenido</p>
+      <h1 class="text-3xl font-bold text-gray-900 mb-3">Tu colección segura</h1>
+      <p class="text-gray-600 mb-4">
+        Inicia sesión para ver tus monedas y subir nuevas, o crea una cuenta en segundos. Clerk gestiona la seguridad por ti.
+      </p>
+      <ul class="space-y-2 text-gray-700">
+        <li class="flex items-start gap-2"><span class="text-blue-600 mt-1">•</span> Acceso rápido con email y contraseña.</li>
+        <li class="flex items-start gap-2"><span class="text-blue-600 mt-1">•</span> Sesiones seguras; sin preocuparte por cookies.</li>
+        <li class="flex items-start gap-2"><span class="text-blue-600 mt-1">•</span> Redirección automática a tu colección.</li>
+      </ul>
+    </section>
+
+    <section class="bg-white shadow-md rounded-xl p-4 border border-gray-100">
+      <div class="flex gap-2 mb-4">
+        <button id="tab-signin" class="flex-1 py-2 px-3 rounded-lg font-semibold text-sm bg-blue-600 text-white">Iniciar sesión</button>
+        <button id="tab-signup" class="flex-1 py-2 px-3 rounded-lg font-semibold text-sm bg-gray-100 text-gray-800 hover:bg-gray-200">Crear cuenta</button>
+      </div>
+
+      <div id="panel-signin">
+        <SignIn path="/auth" routing="path" signUpUrl="/auth?tab=signup" afterSignInUrl="/collection" />
+      </div>
+
+      <div id="panel-signup" class="hidden">
+        <SignUp path="/auth" routing="path" signInUrl="/auth?tab=signin" afterSignUpUrl="/collection" />
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+  const tabSignin = document.getElementById('tab-signin');
+  const tabSignup = document.getElementById('tab-signup');
+  const panelSignin = document.getElementById('panel-signin');
+  const panelSignup = document.getElementById('panel-signup');
+
+  const setTab = (tab) => {
+    const isSignin = tab !== 'signup';
+    tabSignin?.classList.toggle('bg-blue-600', isSignin);
+    tabSignin?.classList.toggle('text-white', isSignin);
+    tabSignin?.classList.toggle('bg-gray-100', !isSignin);
+    tabSignin?.classList.toggle('text-gray-800', !isSignin);
+
+    tabSignup?.classList.toggle('bg-blue-600', !isSignin);
+    tabSignup?.classList.toggle('text-white', !isSignin);
+    tabSignup?.classList.toggle('bg-gray-100', isSignin);
+    tabSignup?.classList.toggle('text-gray-800', isSignin);
+
+    if (panelSignin) panelSignin.classList.toggle('hidden', !isSignin);
+    if (panelSignup) panelSignup.classList.toggle('hidden', isSignin);
+  };
+
+  tabSignin?.addEventListener('click', () => setTab('signin'));
+  tabSignup?.addEventListener('click', () => setTab('signup'));
+
+  // Leer ?tab=signup para abrir registro directamente
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('tab') === 'signup') setTab('signup');
+</script>

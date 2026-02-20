@@ -32,9 +32,9 @@ export interface CoinMetadata {
 /**
  * Datos requeridos para crear una nueva moneda
  */
-export type CreateCoinData = Omit<Coin, 'id' | 'dateAdded'>;
+export type CreateCoinData = Omit<Coin, "id" | "dateAdded">;
 
 /**
  * Datos que se pueden actualizar en una moneda existente
  */
-export type UpdateCoinData = Partial<Omit<Coin, 'id' | 'hash' | 'dateAdded'>>;
+export type UpdateCoinData = Partial<Omit<Coin, "id" | "hash" | "dateAdded">>;

@@ -13,8 +13,6 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     // Import dinámico para evitar problemas con better-sqlite3 en ESM
     const { container } = await import('../../config/container');
-    
-    // Analizar body: soportar FormData (multipart) y JSON con base64
     const contentType = (request.headers.get('content-type') || '').toLowerCase();
 
     let files: any[] = [];
@@ -47,10 +45,8 @@ export const POST: APIRoute = async ({ request }) => {
     // Validar entrada (si se reciben objetos tipo File desde formData)
     try {
       if (Array.isArray(files) && files.length > 0 && files.every((f) => typeof (f as any).arrayBuffer === 'function')) {
-        // OK - compatible con el flujo existente
       } else {
-        // Si no son File-like, lanzar validación personalizada
-        // Permitimos el caso de JSON (ya transformado arriba)
+        throw new Error('No se recibieron archivos válidos');
       }
     } catch (err) {
       throw err;
@@ -70,7 +66,6 @@ export const POST: APIRoute = async ({ request }) => {
       files.map(async (file, i) => {
         const title = titles[i] || file.name;
         const description = descriptions[i] || '';
-
         const buffer = await file.arrayBuffer();
         const imageData = await imageService.processForStorage(buffer);
         const hash = await imageService.computeHash(imageData);
@@ -89,14 +84,9 @@ export const POST: APIRoute = async ({ request }) => {
       })
     );
 
-    // Encontrar duplicados dentro del lote
     const imageHashes = processedImages.map((img, index) => ({ index, hash: img.hash }));
     const batchDuplicates = comparisonService.findBatchDuplicates(imageHashes);
-
-    // Obtener monedas existentes para comparación
     const existingCoins = await coinService.getAllCoinsForComparison();
-
-    // Preparar respuesta
     const duplicatesInBatch = batchDuplicates.map(dup => ({
       match: {
         id: dup.primaryIndex,
@@ -108,15 +98,9 @@ export const POST: APIRoute = async ({ request }) => {
     }));
 
     const processedSet = new Set(batchDuplicates.map(d => d.duplicateIndex));
-
-    const analysisResults = processedImages
-      .filter((_, i) => !processedSet.has(i))
+    const analysisResults = processedImages.filter((_, i) => !processedSet.has(i))
       .map(img => {
-        const existingMatch = comparisonService.findBestMatch(
-          img.hash,
-          img.aiInfo,
-          existingCoins
-        );
+        const existingMatch = comparisonService.findBestMatch( img.hash, img.aiInfo, existingCoins  );
 
         return {
           index: img.index,
@@ -138,10 +122,7 @@ export const POST: APIRoute = async ({ request }) => {
         };
       });
 
-    const response: UploadResponse = {
-      analysisResults,
-      duplicatesInBatch
-    };
+    const response: UploadResponse = { analysisResults, duplicatesInBatch };
 
     logger.info('Carga procesada correctamente', {
       totalImages: files.length,
@@ -149,10 +130,7 @@ export const POST: APIRoute = async ({ request }) => {
       duplicates: duplicatesInBatch.length
     });
 
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(JSON.stringify(response), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (error) {
     return handleApiError(error);
   }

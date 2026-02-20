@@ -3,11 +3,12 @@ import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
+import clerk from '@clerk/astro';
 
 export default defineConfig({
   adapter: vercel(),
 
-  integrations: [react()],
+  integrations: [react(), clerk()],
 
   // Optimizaciones de compilación
   build: {

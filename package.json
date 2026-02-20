@@ -14,7 +14,7 @@
   "dependencies": {
     "@astrojs/react": "^4.4.2",
     "@astrojs/vercel": "^8.0.0",
-    "@google-cloud/vision": "^5.3.4",
+    "@clerk/astro": "^2.17.4",
     "@libsql/client": "^0.17.0",
     "@lucide/astro": "^0.574.0",
     "@tailwindcss/vite": "^4.1.18",
@@ -24,8 +24,8 @@
     "lucide-react": "^0.574.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "sharp": "^0.34.5",
     "serve": "^14.1.2",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {

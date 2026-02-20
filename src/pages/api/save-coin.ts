@@ -13,7 +13,6 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     // Import dinámico para evitar problemas con better-sqlite3 en ESM
     const { container } = await import('../../config/container');
-    
     const body = await request.json();
     const { imageData, hash, title, description, aiInfo } = body;
 
