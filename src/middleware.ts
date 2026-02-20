@@ -23,8 +23,12 @@ const isPublicRoute = createRouteMatcher([
 // Proteger todo lo demás
 export const onRequest = clerkMiddleware(
   (auth, context) => {
-    if (!isPublicRoute(context.request)) {
-      auth().protect();
+    if (isPublicRoute(context.request)) return;
+
+    const { userId, redirectToSignIn } = auth();
+    if (!userId) {
+      // En Clerk v2.17 la función protect() ya no existe; redirigimos manualmente
+      return redirectToSignIn();
     }
   },
   {
