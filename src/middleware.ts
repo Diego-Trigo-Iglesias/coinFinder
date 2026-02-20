@@ -9,19 +9,27 @@ if (!publishableKey) {
   throw new Error('Clerk publishable key is missing (CLERK_PUBLISHABLE_KEY or VITE_CLERK_PUBLISHABLE_KEY).');
 }
 
-// Define rutas que requieren sesión
-const isProtectedRoute = createRouteMatcher([
-  '/upload',
-  '/collection',
-  '/coin-detail/(.*)',
-  '/api/(.*)'
+// Rutas públicas: login/registro y estáticos
+const isPublicRoute = createRouteMatcher([
+  '/auth',
+  '/sign-in',
+  '/sign-up',
+  '/favicon(.*)',
+  '/manifest.json',
+  '/assets/(.*)',
+  '/robots.txt'
 ]);
 
+// Proteger todo lo demás
 export const onRequest = clerkMiddleware(
   (auth, context) => {
-    if (isProtectedRoute(context.request)) {
+    if (!isPublicRoute(context.request)) {
       auth().protect();
     }
   },
-  { publishableKey }
+  {
+    publishableKey,
+    signInUrl: '/auth',
+    signUpUrl: '/auth?tab=signup'
+  }
 );
