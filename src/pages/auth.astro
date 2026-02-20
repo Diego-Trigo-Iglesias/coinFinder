@@ -1,71 +1,220 @@
 ---
+import Layout from '../layouts/Layout.astro';
 import { SignIn, SignUp } from '@clerk/astro/components';
+
+const clerkAppearance = {
+  variables: {
+    colorPrimary: '#1d4ed8',
+    colorText: '#0f172a',
+    borderRadius: '12px',
+    fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif"
+  },
+  elements: {
+    card: 'shadow-none bg-transparent p-0',
+    formButtonPrimary: 'bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-sm h-11',
+    formFieldInput:
+      'rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm h-11',
+    navbar: 'hidden',
+    footer: 'hidden',
+    socialButtonsBlockButton:
+      'rounded-xl border border-slate-200 hover:border-blue-300 text-sm font-semibold h-11',
+    formButtonReset: 'text-sm text-slate-600 hover:text-blue-600'
+  }
+};
 ---
 
-<main class="min-h-screen bg-gradient-to-br from-white via-blue-50 to-blue-100 flex items-center justify-center p-6">
-  <div class="w-full max-w-5xl grid md:grid-cols-2 gap-8 items-start">
-    <section class="bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl p-8 border border-gray-100 flex flex-col justify-center">
-      <div class="flex items-center gap-4 mb-6">
-        <div class="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 shadow-md">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-8 h-8 text-white transform transition-transform duration-300 hover:rotate-12">
-            <circle cx="12" cy="12" r="9" fill="currentColor" />
-            <path d="M8 12h8M12 8v8" stroke="rgba(255,255,255,0.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </div>
-        <div>
-          <p class="text-sm uppercase tracking-wide text-blue-600 font-semibold mb-0">Bienvenido a</p>
-          <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900">CoinFinder — Tu colección segura</h1>
-        </div>
+<Layout>
+  <style>
+    /* Fallback styles so the page keeps layout even if Tailwind is missing */
+    :root {
+      --blue: #1d4ed8;
+      --slate-900: #0f172a;
+      --slate-600: #475569;
+      --border: #e2e8f0;
+      --card: #ffffff;
+      --radius: 18px;
+      --shadow: 0 18px 48px -24px rgba(15, 23, 42, 0.35);
+      font-family: 'Segoe UI', -apple-system, system-ui, sans-serif;
+    }
+    .auth-shell {
+      position: relative;
+      overflow: hidden;
+      margin: 0 auto;
+      padding: 48px 24px 56px;
+      max-width: 1100px;
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background: radial-gradient(140% 120% at 80% 10%, #e0f2fe 0%, #fff 40%, #f8fafc 80%);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .auth-shell::before,
+    .auth-shell::after {
+      content: '';
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(60px);
+      opacity: 0.55;
+      pointer-events: none;
+    }
+    .auth-shell::before {
+      width: 220px;
+      height: 160px;
+      background: #bfdbfe;
+      top: -60px;
+      left: -70px;
+    }
+    .auth-shell::after {
+      width: 200px;
+      height: 140px;
+      background: #c7f9cc;
+      bottom: -40px;
+      right: -50px;
+    }
+    .auth-title {
+      font-size: clamp(28px, 3vw, 36px);
+      font-weight: 800;
+      color: var(--slate-900);
+      margin-bottom: 10px;
+      line-height: 1.2;
+    }
+    .auth-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.01em;
+    }
+    .auth-desc {
+      max-width: 620px;
+      margin: 10px auto 22px;
+      color: var(--slate-600);
+      font-size: 17px;
+      line-height: 1.6;
+    }
+    .auth-card {
+      width: min(520px, 100%);
+      margin: 0 auto 22px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 18px 40px -28px rgba(15, 23, 42, 0.35);
+      padding: 18px 18px 22px;
+      text-align: left;
+    }
+    .tab-switch {
+      display: flex;
+      gap: 10px;
+      padding: 6px;
+      background: #f1f5f9;
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 14px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      background: transparent;
+      color: #1f2937;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .tab-btn.active {
+      background: #fff;
+      color: var(--blue);
+      box-shadow: 0 6px 20px -12px rgba(37, 99, 235, 0.6);
+      border: 1px solid #cbd5e1;
+    }
+    .legal {
+      text-align: center;
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 10px;
+    }
+    .legal a { color: var(--blue); font-weight: 600; }
+    .grid-benefits {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin: 8px auto 0;
+      width: min(920px, 100%);
+    }
+    .benefit {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      text-align: left;
+      box-shadow: 0 12px 30px -26px rgba(15,23,42,0.4);
+    }
+    .benefit h3 { margin: 0 0 10px; font-size: 15px; color: var(--slate-900); }
+    .benefit ul { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 8px; }
+    .benefit li { display: grid; grid-template-columns: 26px 1fr; align-items: start; color: var(--slate-600); font-size: 14px; }
+    .benefit .tick {
+      margin-top: 2px;
+      height: 20px; width: 20px;
+      border-radius: 999px;
+      background: #d1fae5;
+      color: #065f46;
+      display: grid; place-items: center;
+      font-weight: 800; font-size: 12px;
+    }
+    @media (max-width: 640px) {
+      .auth-shell { padding: 32px 18px 44px; }
+      .auth-card { padding: 16px; }
+    }
+  </style>
+
+  <section class="auth-shell">
+    <h1 class="auth-title">CoinFinder — Tu colección segura</h1>
+    <p class="auth-desc">
+      Inicia sesión para ver tus monedas, subir nuevas y mantener tu colección organizada. Interfaz limpia,
+      rápida y protegida.
+    </p>
+
+    <section class="auth-card">
+      <div class="tab-switch">
+        <button id="tab-signin" class="tab-btn active">Iniciar sesión</button>
+        <button id="tab-signup" class="tab-btn">Crear cuenta</button>
       </div>
 
-      <p class="text-gray-600 mb-6">Inicia sesión para ver tus monedas, subir nuevas y mantener tu colección organizada. Rápido, seguro y bonito.</p>
+      <div id="panel-signin">
+        <SignIn
+          path="/auth"
+          routing="path"
+          signUpUrl="/auth?tab=signup"
+          afterSignInUrl="/collection"
+          appearance={clerkAppearance}
+        />
+      </div>
 
-      <ul class="space-y-3 text-gray-700">
-        <li class="flex items-start gap-3">
-          <span class="text-green-500 mt-1">✔</span>
-          <span>Acceso rápido con email y contraseña.</span>
-        </li>
-        <li class="flex items-start gap-3">
-          <span class="text-green-500 mt-1">✔</span>
-          <span>Sesiones seguras y gestión por Clerk.</span>
-        </li>
-        <li class="flex items-start gap-3">
-          <span class="text-green-500 mt-1">✔</span>
-          <span>Redirección directa a tu colección tras ingresar.</span>
-        </li>
-      </ul>
+      <div id="panel-signup" style="display:none;">
+        <SignUp
+          path="/auth"
+          routing="path"
+          signInUrl="/auth?tab=signin"
+          afterSignUpUrl="/collection"
+          appearance={clerkAppearance}
+        />
+      </div>
 
-      <p class="text-xs text-gray-400 mt-6">Tus datos se manejan con encriptación y buenas prácticas de seguridad.</p>
+      <div class="legal">
+        Al crear cuenta aceptas nuestros <a href="#">Términos</a> y <a href="#">Política de privacidad</a>.
+      </div>
     </section>
-
-    <section class="bg-white shadow-2xl rounded-2xl p-4 md:p-6 border border-gray-100">
-      <style>
-        input:focus, textarea:focus, button:focus { outline: none; box-shadow: 0 0 0 6px rgba(59,130,246,0.12); border-radius: 0.375rem; }
-        /* Target common Clerk classes if present */
-        .cl-input:focus, .cl-input:focus-visible { box-shadow: 0 0 0 6px rgba(59,130,246,0.12); }
-      </style>
-
-      <div class="flex items-center justify-between mb-4">
-        <div class="flex gap-2 w-full bg-gray-100 rounded-lg p-1">
-          <button id="tab-signin" class="flex-1 py-2 px-3 rounded-lg font-semibold text-sm text-gray-800 transition-shadow focus:outline-none">Iniciar sesión</button>
-          <button id="tab-signup" class="flex-1 py-2 px-3 rounded-lg font-semibold text-sm text-gray-600 transition-shadow focus:outline-none">Crear cuenta</button>
-        </div>
-      </div>
-
-      <div id="panel-signin" class="opacity-100 transition-opacity duration-300">
-        <div class="mb-4">
-          <SignIn path="/auth" routing="path" signUpUrl="/auth?tab=signup" afterSignInUrl="/collection" />
-        </div>
-      </div>
-
-      <div id="panel-signup" class="hidden opacity-0 transition-opacity duration-300">
-        <SignUp path="/auth" routing="path" signInUrl="/auth?tab=signin" afterSignUpUrl="/collection" />
-      </div>
-
-      <div class="mt-6 text-center text-sm text-gray-500">Al crear cuenta aceptas nuestros <a class="text-blue-600 hover:underline" href="#">Términos</a> y <a class="text-blue-600 hover:underline" href="#">Política de privacidad</a>.</div>
-    </section>
-  </div>
-</main>
+  </section>
+</Layout>
 
 <script>
   const tabSignin = document.getElementById('tab-signin');
@@ -76,25 +225,21 @@ import { SignIn, SignUp } from '@clerk/astro/components';
   const setTab = (tab) => {
     const isSignin = tab !== 'signup';
 
-    // Visual: active tab styling
-    [tabSignin, tabSignup].forEach(b => b && b.classList.remove('bg-blue-50','ring-1','ring-blue-200','text-blue-600','font-bold'));
-    if (isSignin) tabSignin?.classList.add('bg-blue-50','ring-1','ring-blue-200','text-blue-600','font-bold');
-    else tabSignup?.classList.add('bg-blue-50','ring-1','ring-blue-200','text-blue-600','font-bold');
+    [tabSignin, tabSignup].forEach((b) =>
+      b?.classList.remove('bg-white', 'shadow-sm', 'text-blue-700', 'font-bold', 'ring-1', 'ring-blue-200')
+    );
+    if (isSignin) tabSignin?.classList.add('bg-white', 'shadow-sm', 'text-blue-700', 'font-bold', 'ring-1', 'ring-blue-200');
+    else tabSignup?.classList.add('bg-white', 'shadow-sm', 'text-blue-700', 'font-bold', 'ring-1', 'ring-blue-200');
 
-    // Panels: animate fade
     const show = isSignin ? panelSignin : panelSignup;
     const hide = isSignin ? panelSignup : panelSignin;
-
     if (!show || !hide) return;
 
-    // Hide current with fade-out, then add hidden
     hide.classList.remove('opacity-100');
     hide.classList.add('opacity-0');
-    setTimeout(() => { hide.classList.add('hidden'); }, 300);
+    setTimeout(() => hide.classList.add('hidden'), 250);
 
-    // Show target: remove hidden, start from opacity-0 then to opacity-100
     show.classList.remove('hidden');
-    // force paint
     void show.offsetWidth;
     show.classList.remove('opacity-0');
     show.classList.add('opacity-100');
@@ -103,7 +248,6 @@ import { SignIn, SignUp } from '@clerk/astro/components';
   tabSignin?.addEventListener('click', () => setTab('signin'));
   tabSignup?.addEventListener('click', () => setTab('signup'));
 
-  // Leer ?tab=signup para abrir registro directamente
   const params = new URLSearchParams(window.location.search);
-  if (params.get('tab') === 'signup') setTab('signup');
+  setTab(params.get('tab') === 'signup' ? 'signup' : 'signin');
 </script>

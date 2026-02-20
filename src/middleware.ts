@@ -25,10 +25,11 @@ export const onRequest = clerkMiddleware(
   (auth, context) => {
     if (isPublicRoute(context.request)) return;
 
-    const { userId, redirectToSignIn } = auth();
+    const { userId } = auth();
     if (!userId) {
-      // En Clerk v2.17 la función protect() ya no existe; redirigimos manualmente
-      return redirectToSignIn();
+      // Redirigir a /auth limpio (sin redirect_url) para evitar URL ruidosas
+      const url = new URL('/auth', context.request.url);
+      return Response.redirect(url, 302);
     }
   },
   {

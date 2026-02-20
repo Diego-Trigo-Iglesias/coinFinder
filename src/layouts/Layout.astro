@@ -9,6 +9,8 @@ import { SignedIn, SignedOut, UserButton } from '@clerk/astro/components';
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="manifest" href="/manifest.json" />
+		<!-- Fallback Tailwind CDN to ensure styling in dev/serve even if local build fails -->
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.11/dist/tailwind.min.css" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="generator" content={Astro.generator} />
 		<title>CoinFinder</title>
