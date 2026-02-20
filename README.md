@@ -44,7 +44,7 @@ docker-compose up --build
 Levanta solo la app; el análisis se hace contra OpenAI (no hay servidor ML propio).
 
 ## Despliegue en Vercel
-1. Configura en Vercel las env vars: `VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`.
+1. Configura en Vercel las env vars: `VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`.
    - Si quieres usar solo Gemini, añade `GEMINI_API_KEY` (y opcional `GEMINI_MODEL`) y puedes omitir `OPENAI_API_KEY`.
 2. Build command: `npm run build`. Output: `dist`.
 3. Añade tu dominio de producción en el dashboard de Clerk y URLs: sign-in `/sign-in`, sign-up `/sign-up`, after sign-in `/collection`.
