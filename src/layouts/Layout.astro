@@ -34,32 +34,34 @@ import { SignedIn, SignedOut, UserButton } from '@clerk/astro/components';
 		<main class="container mx-auto px-4 max-w-4xl py-6 md:py-8">
 			<slot />
 		</main>
-		<!-- Bottom Navigation para móvil -->
-		<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden">
-			<div class="flex justify-around">
-				<a href="/" class="flex-1 py-3 text-center text-gray-700 hover:bg-gray-100 transition active:bg-blue-100">
-					<Home size={20} class="mx-auto mb-1" />
-					<div class="text-xs">Inicio</div>
-				</a>
-				<a href="/upload" class="flex-1 py-3 text-center text-gray-700 hover:bg-gray-100 transition active:bg-blue-100">
-					<Camera size={20} class="mx-auto mb-1" />
-					<div class="text-xs">Capturar</div>
-				</a>
-				<a href="/collection" class="flex-1 py-3 text-center text-gray-700 hover:bg-gray-100 transition active:bg-blue-100">
-					<Coins size={20} class="mx-auto mb-1" />
-					<div class="text-xs">Colección</div>
-				</a>
-			</div>
-		</nav>
-		<!-- Top Navigation para desktop -->
-		<nav class="hidden md:block bg-white shadow-sm mb-6 -mx-4 -mt-4 px-4 py-4 border-b border-gray-200">
-			<div class="container mx-auto flex justify-between items-center">
-				<div class="flex space-x-6">
-					<a href="/" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition py-2"><Home size={18} /> Inicio</a>
-					<a href="/upload" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition py-2"><Camera size={18} /> Capturar</a>
-					<a href="/collection" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition py-2"><Coins size={18} /> Colección</a>
+		<SignedIn>
+			<!-- Bottom Navigation para movil -->
+			<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden">
+				<div class="flex justify-around">
+					<a href="/" class="flex-1 py-3 text-center text-gray-700 hover:bg-gray-100 transition active:bg-blue-100">
+						<Home size={20} class="mx-auto mb-1" />
+						<div class="text-xs">Inicio</div>
+					</a>
+					<a href="/upload" class="flex-1 py-3 text-center text-gray-700 hover:bg-gray-100 transition active:bg-blue-100">
+						<Camera size={20} class="mx-auto mb-1" />
+						<div class="text-xs">Capturar</div>
+					</a>
+					<a href="/collection" class="flex-1 py-3 text-center text-gray-700 hover:bg-gray-100 transition active:bg-blue-100">
+						<Coins size={20} class="mx-auto mb-1" />
+						<div class="text-xs">Coleccion</div>
+					</a>
 				</div>
-			</div>
-		</nav>
+			</nav>
+			<!-- Top Navigation para desktop -->
+			<nav class="hidden md:block bg-white shadow-sm mb-6 -mx-4 -mt-4 px-4 py-4 border-b border-gray-200">
+				<div class="container mx-auto flex justify-between items-center">
+					<div class="flex space-x-6">
+						<a href="/" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition py-2"><Home size={18} /> Inicio</a>
+						<a href="/upload" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition py-2"><Camera size={18} /> Capturar</a>
+						<a href="/collection" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition py-2"><Coins size={18} /> Coleccion</a>
+					</div>
+				</div>
+			</nav>
+		</SignedIn>
 	</body>
 </html>

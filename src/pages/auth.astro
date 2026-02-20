@@ -177,7 +177,7 @@ const clerkAppearance = {
   </style>
 
   <section class="auth-shell">
-    <h1 class="auth-title">CoinFinder — Tu colección segura</h1>
+    <h1 class="auth-title">Tu colección segura</h1>
     <p class="auth-desc">
       Inicia sesión para ver tus monedas, subir nuevas y mantener tu colección organizada. Interfaz limpia,
       rápida y protegida.
@@ -225,24 +225,17 @@ const clerkAppearance = {
   const setTab = (tab) => {
     const isSignin = tab !== 'signup';
 
-    [tabSignin, tabSignup].forEach((b) =>
-      b?.classList.remove('bg-white', 'shadow-sm', 'text-blue-700', 'font-bold', 'ring-1', 'ring-blue-200')
-    );
-    if (isSignin) tabSignin?.classList.add('bg-white', 'shadow-sm', 'text-blue-700', 'font-bold', 'ring-1', 'ring-blue-200');
-    else tabSignup?.classList.add('bg-white', 'shadow-sm', 'text-blue-700', 'font-bold', 'ring-1', 'ring-blue-200');
+    [tabSignin, tabSignup].forEach((btn, idx) => {
+      const active = (isSignin && idx === 0) || (!isSignin && idx === 1);
+      btn?.classList.toggle('active', active);
+    });
 
     const show = isSignin ? panelSignin : panelSignup;
     const hide = isSignin ? panelSignup : panelSignin;
     if (!show || !hide) return;
 
-    hide.classList.remove('opacity-100');
-    hide.classList.add('opacity-0');
-    setTimeout(() => hide.classList.add('hidden'), 250);
-
-    show.classList.remove('hidden');
-    void show.offsetWidth;
-    show.classList.remove('opacity-0');
-    show.classList.add('opacity-100');
+    hide.style.display = 'none';
+    show.style.display = 'block';
   };
 
   tabSignin?.addEventListener('click', () => setTab('signin'));
