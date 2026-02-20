@@ -1,6 +1,5 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getCoinById, getCoinImage } from '../../lib/db';
 
 export const prerender = false;
 
@@ -25,17 +24,26 @@ interface Coin {
   [key: string]: any;
 }
 
-const coinRow = getCoinById.get(id);
-const coin = coinRow as unknown as Coin;
+let coin!: Coin;
+let imageUrl: string | null = null;
 
-if (!coin) {
+try {
+  // Carga perezosa para evitar problemas de bundling en serverless
+  const { container } = await import('../../config/container');
+  const coinService = container.coinService;
+
+  coin = await coinService.getCoinById(parseInt(id, 10));
+
+  const imageBuffer = await coinService
+    .getCoinImage(parseInt(id, 10))
+    .catch(() => null);
+
+  if (imageBuffer) {
+    imageUrl = `data:image/jpeg;base64,${Buffer.from(imageBuffer).toString('base64')}`;
+  }
+} catch {
   return new Response(JSON.stringify({ error: 'Moneda no encontrada' }), { status: 404 });
 }
-
-const imageRecordRow = getCoinImage.get(id);
-const imageRecord = imageRecordRow as unknown as { image_data?: any };
-const imageData = imageRecord?.image_data ? Buffer.from(imageRecord.image_data).toString('base64') : null;
-const imageUrl = imageData ? `data:image/jpeg;base64,${imageData}` : null;
 ---
 
 <Layout>
