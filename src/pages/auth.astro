@@ -2,34 +2,67 @@
 import { SignIn, SignUp } from '@clerk/astro/components';
 ---
 
-<main class="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-  <div class="w-full max-w-5xl grid md:grid-cols-2 gap-6 items-start">
-    <section class="bg-white shadow-md rounded-xl p-6 border border-gray-100">
-      <p class="text-sm uppercase tracking-wide text-blue-600 font-semibold mb-2">Bienvenido</p>
-      <h1 class="text-3xl font-bold text-gray-900 mb-3">Tu colección segura</h1>
-      <p class="text-gray-600 mb-4">
-        Inicia sesión para ver tus monedas y subir nuevas, o crea una cuenta en segundos. Clerk gestiona la seguridad por ti.
-      </p>
-      <ul class="space-y-2 text-gray-700">
-        <li class="flex items-start gap-2"><span class="text-blue-600 mt-1">•</span> Acceso rápido con email y contraseña.</li>
-        <li class="flex items-start gap-2"><span class="text-blue-600 mt-1">•</span> Sesiones seguras; sin preocuparte por cookies.</li>
-        <li class="flex items-start gap-2"><span class="text-blue-600 mt-1">•</span> Redirección automática a tu colección.</li>
+<main class="min-h-screen bg-gradient-to-br from-white via-blue-50 to-blue-100 flex items-center justify-center p-6">
+  <div class="w-full max-w-5xl grid md:grid-cols-2 gap-8 items-start">
+    <section class="bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl p-8 border border-gray-100 flex flex-col justify-center">
+      <div class="flex items-center gap-4 mb-6">
+        <div class="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 shadow-md">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-8 h-8 text-white transform transition-transform duration-300 hover:rotate-12">
+            <circle cx="12" cy="12" r="9" fill="currentColor" />
+            <path d="M8 12h8M12 8v8" stroke="rgba(255,255,255,0.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm uppercase tracking-wide text-blue-600 font-semibold mb-0">Bienvenido a</p>
+          <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900">CoinFinder — Tu colección segura</h1>
+        </div>
+      </div>
+
+      <p class="text-gray-600 mb-6">Inicia sesión para ver tus monedas, subir nuevas y mantener tu colección organizada. Rápido, seguro y bonito.</p>
+
+      <ul class="space-y-3 text-gray-700">
+        <li class="flex items-start gap-3">
+          <span class="text-green-500 mt-1">✔</span>
+          <span>Acceso rápido con email y contraseña.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-green-500 mt-1">✔</span>
+          <span>Sesiones seguras y gestión por Clerk.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-green-500 mt-1">✔</span>
+          <span>Redirección directa a tu colección tras ingresar.</span>
+        </li>
       </ul>
+
+      <p class="text-xs text-gray-400 mt-6">Tus datos se manejan con encriptación y buenas prácticas de seguridad.</p>
     </section>
 
-    <section class="bg-white shadow-md rounded-xl p-4 border border-gray-100">
-      <div class="flex gap-2 mb-4">
-        <button id="tab-signin" class="flex-1 py-2 px-3 rounded-lg font-semibold text-sm bg-blue-600 text-white">Iniciar sesión</button>
-        <button id="tab-signup" class="flex-1 py-2 px-3 rounded-lg font-semibold text-sm bg-gray-100 text-gray-800 hover:bg-gray-200">Crear cuenta</button>
+    <section class="bg-white shadow-2xl rounded-2xl p-4 md:p-6 border border-gray-100">
+      <style>
+        input:focus, textarea:focus, button:focus { outline: none; box-shadow: 0 0 0 6px rgba(59,130,246,0.12); border-radius: 0.375rem; }
+        /* Target common Clerk classes if present */
+        .cl-input:focus, .cl-input:focus-visible { box-shadow: 0 0 0 6px rgba(59,130,246,0.12); }
+      </style>
+
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex gap-2 w-full bg-gray-100 rounded-lg p-1">
+          <button id="tab-signin" class="flex-1 py-2 px-3 rounded-lg font-semibold text-sm text-gray-800 transition-shadow focus:outline-none">Iniciar sesión</button>
+          <button id="tab-signup" class="flex-1 py-2 px-3 rounded-lg font-semibold text-sm text-gray-600 transition-shadow focus:outline-none">Crear cuenta</button>
+        </div>
       </div>
 
-      <div id="panel-signin">
-        <SignIn path="/auth" routing="path" signUpUrl="/auth?tab=signup" afterSignInUrl="/collection" />
+      <div id="panel-signin" class="opacity-100 transition-opacity duration-300">
+        <div class="mb-4">
+          <SignIn path="/auth" routing="path" signUpUrl="/auth?tab=signup" afterSignInUrl="/collection" />
+        </div>
       </div>
 
-      <div id="panel-signup" class="hidden">
+      <div id="panel-signup" class="hidden opacity-0 transition-opacity duration-300">
         <SignUp path="/auth" routing="path" signInUrl="/auth?tab=signin" afterSignUpUrl="/collection" />
       </div>
+
+      <div class="mt-6 text-center text-sm text-gray-500">Al crear cuenta aceptas nuestros <a class="text-blue-600 hover:underline" href="#">Términos</a> y <a class="text-blue-600 hover:underline" href="#">Política de privacidad</a>.</div>
     </section>
   </div>
 </main>
@@ -42,18 +75,29 @@ import { SignIn, SignUp } from '@clerk/astro/components';
 
   const setTab = (tab) => {
     const isSignin = tab !== 'signup';
-    tabSignin?.classList.toggle('bg-blue-600', isSignin);
-    tabSignin?.classList.toggle('text-white', isSignin);
-    tabSignin?.classList.toggle('bg-gray-100', !isSignin);
-    tabSignin?.classList.toggle('text-gray-800', !isSignin);
 
-    tabSignup?.classList.toggle('bg-blue-600', !isSignin);
-    tabSignup?.classList.toggle('text-white', !isSignin);
-    tabSignup?.classList.toggle('bg-gray-100', isSignin);
-    tabSignup?.classList.toggle('text-gray-800', isSignin);
+    // Visual: active tab styling
+    [tabSignin, tabSignup].forEach(b => b && b.classList.remove('bg-blue-50','ring-1','ring-blue-200','text-blue-600','font-bold'));
+    if (isSignin) tabSignin?.classList.add('bg-blue-50','ring-1','ring-blue-200','text-blue-600','font-bold');
+    else tabSignup?.classList.add('bg-blue-50','ring-1','ring-blue-200','text-blue-600','font-bold');
 
-    if (panelSignin) panelSignin.classList.toggle('hidden', !isSignin);
-    if (panelSignup) panelSignup.classList.toggle('hidden', isSignin);
+    // Panels: animate fade
+    const show = isSignin ? panelSignin : panelSignup;
+    const hide = isSignin ? panelSignup : panelSignin;
+
+    if (!show || !hide) return;
+
+    // Hide current with fade-out, then add hidden
+    hide.classList.remove('opacity-100');
+    hide.classList.add('opacity-0');
+    setTimeout(() => { hide.classList.add('hidden'); }, 300);
+
+    // Show target: remove hidden, start from opacity-0 then to opacity-100
+    show.classList.remove('hidden');
+    // force paint
+    void show.offsetWidth;
+    show.classList.remove('opacity-0');
+    show.classList.add('opacity-100');
   };
 
   tabSignin?.addEventListener('click', () => setTab('signin'));
