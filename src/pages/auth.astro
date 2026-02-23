@@ -25,163 +25,28 @@ const clerkAppearance = {
 
 <Layout>
   <style>
-    /* Fallback styles so the page keeps layout even if Tailwind is missing */
-    :root {
-      --blue: #1d4ed8;
-      --slate-900: #0f172a;
-      --slate-600: #475569;
-      --border: #e2e8f0;
-      --card: #ffffff;
-      --radius: 18px;
-      --shadow: 0 18px 48px -24px rgba(15, 23, 42, 0.35);
-      font-family: 'Segoe UI', -apple-system, system-ui, sans-serif;
+    :root { --blue: #1d4ed8; --slate-900: #0f172a; --slate-600: #475569; --border: #e2e8f0; --card: #ffffff; --radius: 18px; --shadow: 0 18px 48px -24px rgba(15,23,42,0.35); }
+    .auth-shell { margin: 36px auto; padding: 36px 20px; max-width: 960px; border-radius: 20px; background: radial-gradient(140% 120% at 80% 10%, #eaf4ff 0%, #fff 40%, #fbfdff 80%); text-align: center; }
+    .auth-title { font-size: clamp(28px, 3vw, 36px); font-weight: 800; color: var(--slate-900); margin-bottom: 8px; }
+    .auth-desc { max-width: 620px; margin: 8px auto 16px; color: var(--slate-600); font-size: 16px; }
+    .auth-card { width: min(520px,100%); margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: left; display:flex; flex-direction:column; align-items:center; }
+    .tab-switch { display:flex; gap:10px; padding:6px; background:#f1f5f9; border-radius:14px; border:1px solid var(--border); margin-bottom:14px; }
+    .tab-btn { flex:1; padding:10px 12px; border:0; border-radius:10px; font-weight:700; font-size:14px; background:transparent; color:#1f2937; cursor:pointer; }
+    .tab-btn.active { background:#fff; color:var(--blue); box-shadow:0 6px 20px -12px rgba(37,99,235,0.6); border:1px solid #cbd5e1; }
+    .form-center { width:100%; display:flex; justify-content:center; }
+    .form-center > * { width:100%; max-width:420px; }
+    /* Remove heavy borders/shadows inside Clerk forms to achieve a minimal look */
+    .form-center * {
+      box-shadow: none !important;
+      border: 0 !important;
+      background: transparent !important;
     }
-    .auth-shell {
-      position: relative;
-      overflow: hidden;
-      margin: 0 auto;
-      padding: 48px 24px 56px;
-      max-width: 1100px;
-      border: 1px solid var(--border);
-      border-radius: 28px;
-      background: radial-gradient(140% 120% at 80% 10%, #e0f2fe 0%, #fff 40%, #f8fafc 80%);
-      box-shadow: var(--shadow);
-      text-align: center;
-    }
-    .auth-shell::before,
-    .auth-shell::after {
-      content: '';
-      position: absolute;
-      border-radius: 999px;
-      filter: blur(60px);
-      opacity: 0.55;
-      pointer-events: none;
-    }
-    .auth-shell::before {
-      width: 220px;
-      height: 160px;
-      background: #bfdbfe;
-      top: -60px;
-      left: -70px;
-    }
-    .auth-shell::after {
-      width: 200px;
-      height: 140px;
-      background: #c7f9cc;
-      bottom: -40px;
-      right: -50px;
-    }
-    .auth-title {
-      font-size: clamp(28px, 3vw, 36px);
-      font-weight: 800;
-      color: var(--slate-900);
-      margin-bottom: 10px;
-      line-height: 1.2;
-    }
-    .auth-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: #e0f2fe;
-      border: 1px solid #bfdbfe;
-      color: #1d4ed8;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.01em;
-    }
-    .auth-desc {
-      max-width: 620px;
-      margin: 10px auto 22px;
-      color: var(--slate-600);
-      font-size: 17px;
-      line-height: 1.6;
-    }
-    .auth-card {
-      width: min(520px, 100%);
-      margin: 0 auto 22px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: 0 18px 40px -28px rgba(15, 23, 42, 0.35);
-      padding: 18px 18px 22px;
-      text-align: left;
-    }
-    .tab-switch {
-      display: flex;
-      gap: 10px;
-      padding: 6px;
-      background: #f1f5f9;
-      border-radius: 14px;
-      border: 1px solid #e2e8f0;
-      margin-bottom: 14px;
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 10px 12px;
-      border: 0;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 14px;
-      background: transparent;
-      color: #1f2937;
-      cursor: pointer;
-      transition: all 0.18s ease;
-    }
-    .tab-btn.active {
-      background: #fff;
-      color: var(--blue);
-      box-shadow: 0 6px 20px -12px rgba(37, 99, 235, 0.6);
-      border: 1px solid #cbd5e1;
-    }
-    .legal {
-      text-align: center;
-      font-size: 12px;
-      color: #64748b;
-      margin-top: 10px;
-    }
-    .legal a { color: var(--blue); font-weight: 600; }
-    .grid-benefits {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 12px;
-      margin: 8px auto 0;
-      width: min(920px, 100%);
-    }
-    .benefit {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 14px;
-      text-align: left;
-      box-shadow: 0 12px 30px -26px rgba(15,23,42,0.4);
-    }
-    .benefit h3 { margin: 0 0 10px; font-size: 15px; color: var(--slate-900); }
-    .benefit ul { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 8px; }
-    .benefit li { display: grid; grid-template-columns: 26px 1fr; align-items: start; color: var(--slate-600); font-size: 14px; }
-    .benefit .tick {
-      margin-top: 2px;
-      height: 20px; width: 20px;
-      border-radius: 999px;
-      background: #d1fae5;
-      color: #065f46;
-      display: grid; place-items: center;
-      font-weight: 800; font-size: 12px;
-    }
-    @media (max-width: 640px) {
-      .auth-shell { padding: 32px 18px 44px; }
-      .auth-card { padding: 16px; }
-    }
+    @media (max-width:640px){ .auth-shell{padding:24px 12px;} }
   </style>
 
   <section class="auth-shell">
     <h1 class="auth-title">Tu colección segura</h1>
-    <p class="auth-desc">
-      Inicia sesión para ver tus monedas, subir nuevas y mantener tu colección organizada. Interfaz limpia,
-      rápida y protegida.
-    </p>
+    <p class="auth-desc">Inicia sesión para ver tus monedas, subir nuevas y mantener tu colección organizada.</p>
 
     <section class="auth-card">
       <div class="tab-switch">
@@ -190,28 +55,32 @@ const clerkAppearance = {
       </div>
 
       <div id="panel-signin">
-        <SignIn
-          path="/auth"
-          routing="path"
-          signUpUrl="/auth?tab=signup"
-          afterSignInUrl="/collection"
-          appearance={clerkAppearance}
-        />
+        <div class="form-center">
+          <SignIn
+            path="/auth"
+            routing="path"
+            signUpUrl="/auth?tab=signup"
+            fallbackRedirectUrl="/collection"
+            appearance={clerkAppearance}
+            localization={{ language: 'es' }}
+          />
+        </div>
       </div>
 
       <div id="panel-signup" style="display:none;">
-        <SignUp
-          path="/auth"
-          routing="path"
-          signInUrl="/auth?tab=signin"
-          afterSignUpUrl="/collection"
-          appearance={clerkAppearance}
-        />
+        <div class="form-center">
+          <SignUp
+            path="/auth"
+            routing="path"
+            signInUrl="/auth?tab=signin"
+            fallbackRedirectUrl="/collection"
+            appearance={clerkAppearance}
+            localization={{ language: 'es' }}
+          />
+        </div>
       </div>
 
-      <div class="legal">
-        Al crear cuenta aceptas nuestros <a href="#">Términos</a> y <a href="#">Política de privacidad</a>.
-      </div>
+      <div style="text-align:center;font-size:12px;color:#64748b;margin-top:10px;">Al crear cuenta aceptas nuestros <a href="#">Términos</a> y <a href="#">Política</a>.</div>
     </section>
   </section>
 </Layout>
@@ -224,23 +93,60 @@ const clerkAppearance = {
 
   const setTab = (tab) => {
     const isSignin = tab !== 'signup';
-
-    [tabSignin, tabSignup].forEach((btn, idx) => {
-      const active = (isSignin && idx === 0) || (!isSignin && idx === 1);
-      btn?.classList.toggle('active', active);
-    });
-
+    [tabSignin, tabSignup].forEach((btn, idx) => { const active = (isSignin && idx === 0) || (!isSignin && idx === 1); btn?.classList.toggle('active', active); });
     const show = isSignin ? panelSignin : panelSignup;
     const hide = isSignin ? panelSignup : panelSignin;
     if (!show || !hide) return;
-
-    hide.style.display = 'none';
-    show.style.display = 'block';
+    hide.style.display = 'none'; show.style.display = 'block';
   };
 
   tabSignin?.addEventListener('click', () => setTab('signin'));
   tabSignup?.addEventListener('click', () => setTab('signup'));
-
   const params = new URLSearchParams(window.location.search);
   setTab(params.get('tab') === 'signup' ? 'signup' : 'signin');
+
+  /* Replace common Clerk English texts with Spanish equivalents as a fallback
+     (useful when the component's built-in localization isn't applied). */
+  const translations = {
+    'Welcome back! Please sign in to continue': '¡Bienvenido de nuevo! Por favor inicia sesión para continuar',
+    'Welcome! Please fill in the details to get started.': '¡Bienvenido! Completa los datos para empezar.',
+    'Create an account': 'Crear cuenta',
+    'Create your account': 'Crear tu cuenta',
+    'First name': 'Nombre',
+    'Last name': 'Apellido',
+    'Username': 'Nombre de usuario',
+    'Optional': 'Opcional',
+    'Email address or username': 'Correo electrónico o usuario',
+    'Email address': 'Correo electrónico',
+    'Enter email or username': 'Introduce correo o usuario',
+    'Password': 'Contraseña',
+    'Enter your password': 'Introduce tu contraseña',
+    "Don't have an account?": '¿No tienes cuenta?',
+    'Already have an account?': '¿Ya tienes cuenta?',
+    'Sign up': 'Crear cuenta',
+    'Sign in': 'Iniciar sesión',
+    'Secured by': 'Protegido por',
+    'Development mode': 'Modo desarrollo'
+  };
+
+  function replaceTextsInTree(root = document.body) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const n of nodes) {
+      const txt = n.nodeValue.trim();
+      if (!txt) continue;
+      for (const [eng, esp] of Object.entries(translations)) {
+        if (txt.includes(eng)) {
+          n.nodeValue = n.nodeValue.replace(eng, esp);
+        }
+      }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Try replacing immediately and again after a short delay (Clerk may render async)
+    replaceTextsInTree(document.querySelector('.form-center'));
+    setTimeout(() => replaceTextsInTree(document.querySelector('.form-center')), 600);
+  });
 </script>
