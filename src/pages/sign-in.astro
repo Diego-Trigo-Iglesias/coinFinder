@@ -3,7 +3,37 @@ import { SignIn } from '@clerk/astro/components';
 ---
 
 <main class="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-  <div class="bg-white shadow-lg rounded-xl p-6 w-full max-w-md">
-    <SignIn path="/sign-in" routing="path" afterSignInUrl="/collection" signUpUrl="/sign-up" />
+  <div class="w-full max-w-md form-center">
+    <SignIn path="/sign-in" routing="path" afterSignInUrl="/collection" signUpUrl="/sign-up" localization={{ language: 'es' }} />
   </div>
+
+  <script>
+    const replacements = {
+      'Welcome back! Please sign in to continue': '¡Bienvenido de nuevo! Por favor inicia sesión para continuar',
+      'Welcome! Please fill in the details to get started.': '¡Bienvenido! Completa los datos para empezar.',
+      'Email address or username': 'Correo electrónico o usuario',
+      'Enter email or username': 'Introduce correo o usuario',
+      'Password': 'Contraseña',
+      'Enter your password': 'Introduce tu contraseña',
+      "Don't have an account?": '¿No tienes cuenta?',
+      'Sign up': 'Crear cuenta',
+      'Sign in': 'Iniciar sesión',
+      'Secured by': 'Protegido por',
+      'Development mode': 'Modo desarrollo'
+    };
+    function replaceTextNodes(root) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      const nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      for (const n of nodes) {
+        const txt = n.nodeValue.trim();
+        if (!txt) continue;
+        for (const [a,b] of Object.entries(replacements)) if (txt.includes(a)) n.nodeValue = n.nodeValue.replace(a,b);
+      }
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      replaceTextNodes(document.querySelector('.form-center'));
+      setTimeout(() => replaceTextNodes(document.querySelector('.form-center')), 600);
+    });
+  </script>
 </main>

@@ -2,117 +2,100 @@
 
 Descripción
 -----------
-`coinFinder` es una aplicación web para subir, analizar y gestionar imágenes de monedas. Permite a usuarios subir imágenes, obtener análisis/comparaciones automatizadas y almacenar metadatos en una base de datos ligera. La aplicación está construida con Astro y un conjunto de servicios modulares (ImageService, CoinService, ComparisonService, AnalysisService) que separan la lógica de dominio de la infraestructura.
+`coinFinder` es una aplicación web para subir, analizar y gestionar imágenes de monedas. Está diseñada como una SPA/SSR ligera con enfoque modular: separa la lógica de dominio (servicios) de los adaptadores de infraestructura (DB, cache, almacenamiento de imágenes). Está pensada para prototipos rápidos y despliegues serverless en Vercel.
 
-**Tecnologías principales**
-- **Framework:** Astro
-- **Lenguaje:** TypeScript
-- **Package manager:** pnpm
-- **Base de datos:** SQLite / LibSQL (con adaptadores en `src/infrastructure/database`)
-- **Cache:** In-memory cache (en `src/infrastructure/cache`)
-- **Hosting / Deploy:** Vercel
+Estado del repositorio
+----------------------
+- Versión del proyecto: `0.0.1`
 
-**Características**
-- Subida de imágenes desde cámara o galería.
-- Análisis de imágenes con proveedores configurables (p. ej. Gemini Vision, OpenAI Vision).
-- Detección de duplicados mediante hash perceptual y metadatos.
-- Autenticación y rutas protegidas (integración con servicios de auth configurables).
-- API serverless routes bajo `src/pages/api` para integración con frontend.
+Tecnologías y versiones clave
+-----------------------------
+Estos son los paquetes principales instalados en el proyecto (valores reales extraídos del repositorio):
+
+- **Node.js:** >= 18 (recomendado)
+- **pnpm:** lockfile v9 (recomendado pnpm >= 9)
+- **Astro:** 5.17.3
+- **React / React DOM:** 19.2.4
+- **@astrojs/react:** 4.4.2
+- **@astrojs/vercel:** 8.2.11
+- **TypeScript (dev, indirect):** 5.9.3
+- **Tailwind CSS:** 4.1.18
+- **Sharp (procesamiento de imágenes):** 0.34.5
+- **@libsql/client:** 0.17.0
+- **@clerk/astro:** 2.17.4
+
+Arquitectura (alto nivel)
+-------------------------
+- `src/core`: modelos y servicios de dominio (CoinService, AnalysisService, ComparisonService, ImageService).
+- `src/infrastructure`: adaptadores (DB: `SqliteDatabase` / `LibsqlDatabase`, cache: `InMemoryCache`).
+- `src/pages/api`: endpoints serverless para carga, guardado y recuperación de imágenes/metadatos.
 
 Requisitos
----------
+----------
 - Node.js >= 18
 - pnpm (recomendado) o npm
-- Claves/secretos para los servicios externos que uses (OpenAI/Gemini, Clerk u otro proveedor de auth, Turso/LibSQL si aplica)
+- Variables de entorno para proveedores externos (ver sección siguiente)
 
-Variables de entorno (ejemplo)
-------------------------------
-Ejemplo mínimo (ajusta según tu configuración concreta):
+Variables de entorno (mínimas)
+-----------------------------
+- `DATABASE_URL` — URL de conexión a la base de datos (Turso/LibSQL/SQLite según entorno)
+- `VERCEL_TOKEN` — token para despliegues (opcional, si usas Vercel CLI)
+- `OPENAI_API_KEY` / `GEMINI_API_KEY` — keys para análisis/visión (si aplicas)
+- `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` — claves para autenticación con Clerk
+- `NODE_ENV` — `development` | `production`
 
-`DATABASE_URL`, `VERCEL_TOKEN`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `NODE_ENV`
+Instalación y ejecución local
+-----------------------------
+Instala dependencias y ejecuta en modo desarrollo:
 
-Instalación y desarrollo local
-------------------------------
-1. Instalar dependencias:
+```bash
+pnpm install
+pnpm dev
+```
 
-   `pnpm install`
+Construcción y previsualización de producción:
 
-2. Crear el archivo de variables y rellenarlo (ej. `.env.local`).
+```bash
+pnpm build
+pnpm preview
+```
 
-3. Ejecutar en modo desarrollo:
+Servir el build estático (opcional):
 
-   `pnpm dev`
+```bash
+pnpm run serve:static
+```
 
-4. Construir para producción:
+Rutas y endpoints importantes
+-----------------------------
+- `src/pages/api/upload.ts` — subida y procesamiento inicial de imágenes
+- `src/pages/api/save-coin.ts` — guardado de metadatos de moneda en DB
+- `src/pages/api/coins-paginated.ts` — listado paginado de monedas
+- `src/pages/api/coin-image/[id].ts` — entrega de imágenes de moneda
+- Páginas públicas/UX: `index.astro`, `upload.astro`, `collection.astro`, `history.astro`, `coin-detail/[id].astro`
 
-   `pnpm build`
+Despliegue
+---------
+Recomendado: desplegar en Vercel con integración git.
 
-5. Previsualizar producción localmente:
+Configuración mínima en Vercel:
+- Framework Preset: `Astro`
+- Build Command: `pnpm build`
+- Output Directory: `dist`
 
-   `pnpm preview`
+Variables de entorno: añade las keys listadas arriba en el dashboard de Vercel (Production / Preview / Development según corresponda).
 
-Docker
-------
-Para levantar con Docker (si existe `docker-compose.yml`):
-
-`docker-compose up --build`
+Seguridad y buenas prácticas
+---------------------------
+- No subas `.env` o archivos con secretos al repositorio. Añadelos a `.gitignore`.
+- Rota las claves si crees que se expusieron accidentalmente.
+- Limita permisos de las cuentas de servicio usadas para análisis (OpenAI/Gemini) y la DB.
 
 Estructura del proyecto (resumen)
 --------------------------------
-- `src/pages` - Páginas y endpoints API.
-- `src/core` - Lógica de dominio y servicios (`CoinService`, `ImageService`, `AnalysisService`, `ComparisonService`).
-- `src/infrastructure` - Adaptadores de persistencia y cache.
-- `src/components` - Componentes UI.
-- `src/utils` - Validaciones, errores, helpers.
+- `src/components` — UI components (React + Astro)
+- `src/core/domain/models` — modelos de dominio (`Coin`, `Analysis`, `Upload`)
+- `src/core/services` — servicios que implementan la lógica de negocio
+- `src/infrastructure/database` — adaptadores DB (`SqliteDatabase`, `LibsqlDatabase`)
+- `src/pages` — rutas y endpoints (páginas + API)
 
-Endpoints y rutas relevantes
----------------------------
-- `src/pages/api/upload.ts` - Endpoint de subida de imágenes.
-- `src/pages/api/save-coin.ts` - Guardado de metadatos de moneda.
-- `src/pages/api/coins-paginated.ts` - Listado paginado.
-- `src/pages/api/coin-image/[id].ts` - Servir imágenes de moneda.
-- Páginas principales: `index.astro`, `upload.astro`, `collection.astro`, `history.astro`, `coin-detail/[id].astro`, autenticación en `auth.astro`, `sign-in.astro`, `sign-up.astro`.
-
-Despliegue directo a Vercel (push a la rama `master`)
----------------------------------------------------
-La manera más sencilla es conectar el repositorio Git a Vercel y permitir despliegues automáticos al hacer push a la rama `master`.
-
-1. En Vercel, crea un nuevo proyecto y conecta tu repositorio.
-2. Ajusta la configuración del proyecto:
-
-   - Framework Preset: `Astro`
-   - Build Command: `pnpm build`
-   - Output Directory: `dist`
-   - Branch to deploy: `master`
-
-3. Añade las variables de entorno necesarias desde el dashboard de Vercel (`DATABASE_URL`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `CLERK_*`, etc.).
-
-4. Para desplegar desde tu máquina haciendo push a `master`:
-
-   `git add .`
-   `git commit -m "chore: prepare deploy to Vercel"`
-   `git push origin master`
-
-Vercel detectará el push y lanzará la build automáticamente.
-
-Despliegue manual con Vercel CLI
---------------------------------
-Si prefieres desplegar manualmente desde tu máquina local:
-
-1. Instala la CLI de Vercel: `pnpm add -g vercel`
-2. Inicia sesión: `vercel login`
-3. Despliega en producción: `vercel --prod`
-
-Notas y recomendaciones
------------------------
-- No subas archivos con secretos (`.env.local`) al repositorio.
-- Mantén las variables de entorno y secretos en el panel de Vercel.
-- Revisa los providers que uses para análisis de imagen y ajusta los timeouts/quotas en producción.
-
-Contribuir
-----------
-- Fork, crea una rama (`feat/` o `fix/`), abre un PR con descripción clara y pruebas si procede.
-
-Contacto
--------
-Si quieres que documente más en profundidad el flujo interno (por ejemplo `ImageService`, esquema de DB o migraciones), indícame cuál y lo detallo con ejemplos y comandos.
