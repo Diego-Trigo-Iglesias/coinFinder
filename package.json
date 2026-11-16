@@ -12,7 +12,7 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/react": "^4.4.2",
+    "@astrojs/react": "^7.1.8",
     "@astrojs/vercel": "^11.0.22",
     "@clerk/astro": "^4.1.22",
     "@libsql/client": "^0.17.0",
