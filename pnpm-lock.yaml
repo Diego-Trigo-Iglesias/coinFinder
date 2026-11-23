@@ -21,8 +21,8 @@ importers:
         specifier: ^0.17.0
         version: 0.17.0
       '@lucide/astro':
-        specifier: ^1.73.0
-        version: 1.73.0(astro@7.4.12(@types/node@25.3.0)(@vercel/functions@3.11.3(ws@8.23.0))(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))
+        specifier: ^1.76.0
+        version: 1.76.0(astro@7.4.12(@types/node@25.3.0)(@vercel/functions@3.11.3(ws@8.23.0))(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))
       '@tailwindcss/vite':
         specifier: ^4.3.5
         version: 4.3.5(vite@8.3.8(@types/node@25.3.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))
@@ -720,8 +720,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@lucide/astro@1.73.0':
-    resolution: {integrity: sha512-FpCBGh0D4yc3uFxcJ/qcBaEq2MzG70DHavYbbPjMYLVadAuFVM4CNcgdGKxanvFR5TS050+aF7gIAEVjfXyOcQ==}
+  '@lucide/astro@1.76.0':
+    resolution: {integrity: sha512-+jgka4XCCdzb5LOLN2tDRH5Y1lut84T1BaWkZzzt49c0ZaXfCeDF2nqxl5vrnI+L4kByPlQOz+yu9jeqjZhwjw==}
     peerDependencies:
       astro: ^4 || ^5 || ^6 || ^7
 
@@ -3170,7 +3170,7 @@ snapshots:
   '@libsql/win32-x64-msvc@0.5.22':
     optional: true
 
-  '@lucide/astro@1.73.0(astro@7.4.12(@types/node@25.3.0)(@vercel/functions@3.11.3(ws@8.23.0))(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))':
+  '@lucide/astro@1.76.0(astro@7.4.12(@types/node@25.3.0)(@vercel/functions@3.11.3(ws@8.23.0))(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))':
     dependencies:
       astro: 7.4.12(@types/node@25.3.0)(@vercel/functions@3.11.3(ws@8.23.0))(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
 
