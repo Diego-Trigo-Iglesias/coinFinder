@@ -15,8 +15,8 @@ importers:
         specifier: ^11.0.22
         version: 11.0.22(astro@7.4.12(@types/node@25.3.0)(@vercel/functions@3.11.3(ws@8.23.0))(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(react@19.2.4)(rollup@4.57.1)(supports-color@7.2.0)(ws@8.23.0)
       '@clerk/astro':
-        specifier: ^4.1.22
-        version: 4.1.22(astro@7.4.12(@types/node@25.3.0)(@vercel/functions@3.11.3(ws@8.23.0))(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^4.1.28
+        version: 4.1.28(astro@7.4.12(@types/node@25.3.0)(@vercel/functions@3.11.3(ws@8.23.0))(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@libsql/client':
         specifier: ^0.17.0
         version: 0.17.0
@@ -267,18 +267,18 @@ packages:
     resolution: {integrity: sha512-tEj8X2No2A1c9NDnZECxiiJ8TP3vmFlN9tLlLeSaMqVW4tUmVG2R4qpv/eP4zymWxnymYLkLcIYVV0VcWj3RCQ==}
     engines: {node: '>= 20.12.0'}
 
-  '@clerk/astro@4.1.22':
-    resolution: {integrity: sha512-yu5awG49kTlEc7OQK/QpQwrT2ljhbZAMwYa8WhlQvxP5d9fzeiMRUkFnZxVcDzwSm2qDIuJBAmFlnatKclvnGg==}
+  '@clerk/astro@4.1.28':
+    resolution: {integrity: sha512-nqNFwqjpqyQxqMrjDa2sjKGtyBd7Jh6QCsGS47xNv2MEcm+S9XZaZBn89NA98dJx/wyO/qlOWmK+WAUv6EbmcA==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       astro: ^5.0.0 || ^6.0.0 || ^7.0.0
 
-  '@clerk/backend@3.27.0':
-    resolution: {integrity: sha512-pmhVVP9EsAOL1rlRU4xR0XSL1BJczxGAJIqv8c+C9fRz7TYzCndGUMSSE/Zg7i2QOA24ExJbEJUiOjILdUL2EQ==}
+  '@clerk/backend@3.31.2':
+    resolution: {integrity: sha512-7RWZPcdRMzO0zqXgXz09AnibDNwa2nMOvlY79LNavJOajHeG5CoEkpfAYRO9uKjC9+MIy/PNGyBb9wXusu5LGA==}
     engines: {node: '>=20.9.0'}
 
-  '@clerk/shared@4.44.1':
-    resolution: {integrity: sha512-c06U6GtlLJNOKj900rHDSqjVRz0/0zb3RZXVGKUqTulfQxr4Ym543JE6cbOnZVJZCbm0fGPhdRKvHq6fO/SvVw==}
+  '@clerk/shared@4.48.1':
+    resolution: {integrity: sha512-qNj66fHshem+ozP7R9fsVekJR/HvuI+R3PkpZmOE95Fg4B7BlqSkpKVuw0iD8xn7Guo3zGrHFqe6jzdjDHPXkw==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
@@ -2815,10 +2815,10 @@ snapshots:
       fast-wrap-ansi: 0.2.2
       sisteransi: 2.0.0
 
-  '@clerk/astro@4.1.22(astro@7.4.12(@types/node@25.3.0)(@vercel/functions@3.11.3(ws@8.23.0))(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@clerk/astro@4.1.28(astro@7.4.12(@types/node@25.3.0)(@vercel/functions@3.11.3(ws@8.23.0))(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@clerk/backend': 3.27.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@clerk/shared': 4.44.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@clerk/backend': 3.31.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@clerk/shared': 4.48.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       astro: 7.4.12(@types/node@25.3.0)(@vercel/functions@3.11.3(ws@8.23.0))(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(yaml@2.9.1)
       nanoid: 5.1.16
       nanostores: 1.5.1
@@ -2826,15 +2826,15 @@ snapshots:
       - react
       - react-dom
 
-  '@clerk/backend@3.27.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@clerk/backend@3.31.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@clerk/shared': 4.44.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@clerk/shared': 4.48.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       standardwebhooks: 1.0.0
     transitivePeerDependencies:
       - react
       - react-dom
 
-  '@clerk/shared@4.44.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@clerk/shared@4.48.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@tanstack/query-core': 5.107.1
       dequal: 2.0.3
